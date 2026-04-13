@@ -1,0 +1,58 @@
+name: joyfish_app
+description: Joyfish Flutter mobile app
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_riverpod: ^2.4.9
+  auto_route: ^9.3.0+1
+  dio: ^5.4.0
+  pretty_dio_logger: ^1.3.1
+  shared_preferences: ^2.2.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_screenutil: ^5.9.0
+  logger: ^2.0.2+1
+  fluttertoast: ^8.2.4
+  flutter_svg: ^2.0.10+1
+  record: ^6.2.0
+  permission_handler: ^12.0.1
+  just_audio: ^0.9.42
+  path_provider: ^2.1.4
+  flutter_markdown: ^0.7.3+1
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+  auto_route_generator: ^9.0.0
+  build_runner: ^2.4.13
+  hive_generator: ^2.0.1
+  json_annotation: ^4.8.1
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+
+#  fonts:
+#    - family: PingFang
+#      fonts:
+#        - asset: assets/fonts/PingFang-Regular.ttf
+#        - asset: assets/fonts/PingFang-Medium.ttf
+#          weight: 500
+#        - asset: assets/fonts/PingFang-Bold.ttf
+#          weight: 700

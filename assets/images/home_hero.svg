@@ -1,0 +1,35 @@
+<svg width="220" height="220" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="body" x1="56" y1="34" x2="160" y2="188" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#68C8FF"/>
+      <stop offset="1" stop-color="#2F74F3"/>
+    </linearGradient>
+    <linearGradient id="beak" x1="72" y1="122" x2="157" y2="122" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF9800"/>
+      <stop offset="1" stop-color="#FFB400"/>
+    </linearGradient>
+    <linearGradient id="fin" x1="145" y1="90" x2="184" y2="123" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#63C1FF"/>
+      <stop offset="1" stop-color="#4A8EF7"/>
+    </linearGradient>
+  </defs>
+
+  <ellipse cx="111" cy="109" rx="58" ry="72" fill="url(#body)"/>
+  <path d="M154 101C169 84 176 80 183 71C177 88 178 96 192 109C178 105 171 109 163 122L154 101Z" fill="url(#fin)"/>
+  <ellipse cx="72" cy="118" rx="19" ry="12" fill="#5FAEF7" fill-opacity="0.9"/>
+  <ellipse cx="149" cy="116" rx="18" ry="12" fill="#5FAEF7" fill-opacity="0.9"/>
+  <path d="M62 117C72 106 91 100 111 100C130 100 149 106 159 117C146 128 130 134 111 134C91 134 75 130 62 117Z" fill="#173763"/>
+  <path d="M72 118C83 111 96 109 111 109C126 109 140 111 157 119L149 134C136 130 124 128 111 128C98 128 85 130 74 135L72 118Z" fill="url(#beak)"/>
+  <ellipse cx="111" cy="118" rx="22" ry="8" fill="#FFD27B" fill-opacity="0.62"/>
+
+  <circle cx="88" cy="87" r="18" fill="white"/>
+  <circle cx="132" cy="87" r="18" fill="white"/>
+  <circle cx="87" cy="87" r="11" fill="#273B63"/>
+  <circle cx="131" cy="87" r="11" fill="#273B63"/>
+  <circle cx="84" cy="82" r="3" fill="white"/>
+  <circle cx="128" cy="82" r="3" fill="white"/>
+  <circle cx="89" cy="92" r="2.5" fill="white" fill-opacity="0.9"/>
+  <circle cx="133" cy="92" r="2.5" fill="white" fill-opacity="0.9"/>
+
+  <path d="M153 119L168 126L162 141L146 134L153 119Z" fill="#FFAA16"/>
+</svg>
