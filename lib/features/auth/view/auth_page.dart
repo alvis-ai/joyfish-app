@@ -1,17 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../common/themes/app_theme.dart';
-import '../../../common/widgets/app_button.dart';
-import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../core/router/app_router.dart';
 import '../providers/session_providers.dart';
 
-enum _AuthMode { sms, password, register }
+enum _AuthMode { login, register }
 
 @RoutePage()
 class AuthPage extends ConsumerStatefulWidget {
@@ -23,24 +20,24 @@ class AuthPage extends ConsumerStatefulWidget {
 
 class _AuthPageState extends ConsumerState<AuthPage> {
   final _loginPhoneController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _smsCodeController = TextEditingController();
+  final _loginCodeController = TextEditingController();
   final _registerPhoneController = TextEditingController();
-  final _registerCodeController = TextEditingController();
   final _registerPasswordController = TextEditingController();
-  _AuthMode _mode = _AuthMode.sms;
-  bool _smsRequested = false;
+  final _registerCodeController = TextEditingController();
+
+  _AuthMode _mode = _AuthMode.register;
+  bool _requestingLoginCode = false;
+  bool _requestingRegisterCode = false;
   String? _loginDebugCode;
   String? _registerDebugCode;
 
   @override
   void dispose() {
     _loginPhoneController.dispose();
-    _passwordController.dispose();
-    _smsCodeController.dispose();
+    _loginCodeController.dispose();
     _registerPhoneController.dispose();
-    _registerCodeController.dispose();
     _registerPasswordController.dispose();
+    _registerCodeController.dispose();
     super.dispose();
   }
 
@@ -51,7 +48,8 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
     ref.listen<SessionState>(sessionControllerProvider, (previous, next) {
       if (next.error != null && next.error != previous?.error && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(next.error!)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(next.error!)));
       }
       if (next.isAuthenticated && !(previous?.isAuthenticated ?? false)) {
         context.router.replace(const MainShellRoute());
@@ -59,373 +57,1138 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     });
 
     return Scaffold(
-      body: Container(
+      resizeToAvoidBottomInset: true,
+      backgroundColor: const Color(0xFFF7F6FC),
+      body: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFE2A9), Color(0xFFF4B3D8), Color(0xFFB59AF5)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFF8F7FC),
+              Color(0xFFF1EFFB),
+              Color(0xFFFFF8EC),
+            ],
           ),
         ),
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = _mode == _AuthMode.register;
-              final logoSize = 120.w;
-              final topPadding = 30.h;
-              final bottomPadding = 24.h;
-              final titleGap = 24.h;
-              final cardPadding = compact
-                  ? EdgeInsets.fromLTRB(20.w, 18.h, 20.w, 14.h)
-                  : EdgeInsets.fromLTRB(22.w, 22.h, 22.w, 20.h);
-              final rawCardMaxHeight = compact
-                  ? constraints.maxHeight - 206.h
-                  : constraints.maxHeight - 274.h;
-              final cardMaxHeight = rawCardMaxHeight.clamp(300.h, constraints.maxHeight - 120.h);
-              final targetCardHeight = _cardHeightForMode(cardMaxHeight);
-
-              return Padding(
-                padding: EdgeInsets.fromLTRB(28.w, topPadding, 28.w, bottomPadding),
-                child: Stack(
-                  children: [
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: logoSize,
-                            height: logoSize,
-                            child: SvgPicture.asset('assets/images/home_hero.svg'),
-                          ),
-                          SizedBox(height: titleGap),
-                          Text('乐鱼故事', style: Theme.of(context).textTheme.displayMedium),
-                          SizedBox(height: 10.h),
-                          Text(
-                            '专属于你的睡前故事',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  color: const Color(0xFF8A59D7),
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOutCubic,
-                        height: targetCardHeight,
-                        child: JoyfishCard(
-                          radius: 30.r,
-                          padding: cardPadding,
-                          backgroundColor: Colors.white.withValues(alpha: 0.86),
-                          child: SingleChildScrollView(
-                            physics: compact
-                                ? const ClampingScrollPhysics()
-                                : const NeverScrollableScrollPhysics(),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _titleForMode(),
-                                  style: Theme.of(context).textTheme.headlineLarge,
-                                ),
-                                SizedBox(height: compact ? 12.h : 18.h),
-                                AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 220),
-                                  child: _buildFormContent(sessionState, sessionNotifier),
-                                ),
-                                SizedBox(height: compact ? 8.h : 16.h),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    _FooterLink(
-                                      text: '手机号登录',
-                                      active: _mode == _AuthMode.sms,
-                                      onTap: () => _switchMode(_AuthMode.sms),
-                                    ),
-                                    _DotDivider(),
-                                    _FooterLink(
-                                      text: '密码登录',
-                                      active: _mode == _AuthMode.password,
-                                      onTap: () => _switchMode(_AuthMode.password),
-                                    ),
-                                    _DotDivider(),
-                                    _FooterLink(
-                                      text: '注册',
-                                      active: _mode == _AuthMode.register,
-                                      onTap: () => _switchMode(_AuthMode.register),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+          child: _mode == _AuthMode.register
+              ? _RegisterView(
+                  phoneController: _registerPhoneController,
+                  codeController: _registerCodeController,
+                  passwordController: _registerPasswordController,
+                  debugCode: _registerDebugCode,
+                  requestingCode: _requestingRegisterCode,
+                  submitting: sessionState.submitting,
+                  onChanged: () => setState(() {}),
+                  onRequestCode:
+                      _registerPhoneController.text.trim().length >= 11 &&
+                              !_requestingRegisterCode &&
+                              !sessionState.submitting
+                          ? () => _requestRegisterCode(
+                              _registerPhoneController.text.trim())
+                          : null,
+                  onLoginTap: () => setState(() => _mode = _AuthMode.login),
+                  onSubmit:
+                      _canRegister() ? () => _register(sessionNotifier) : null,
+                )
+              : _LoginView(
+                  phoneController: _loginPhoneController,
+                  codeController: _loginCodeController,
+                  debugCode: _loginDebugCode,
+                  requestingCode: _requestingLoginCode,
+                  submitting: sessionState.submitting,
+                  onChanged: () => setState(() {}),
+                  onRequestCode: _loginPhoneController.text.trim().length >=
+                              11 &&
+                          !_requestingLoginCode &&
+                          !sessionState.submitting
+                      ? () =>
+                          _requestLoginCode(_loginPhoneController.text.trim())
+                      : null,
+                  onRegisterTap: () =>
+                      setState(() => _mode = _AuthMode.register),
+                  onSubmit: _canLogin() ? () => _login(sessionNotifier) : null,
                 ),
-              );
-            },
-          ),
         ),
       ),
     );
   }
 
-  Widget _buildFormContent(SessionState sessionState, SessionController sessionNotifier) {
-    switch (_mode) {
-      case _AuthMode.sms:
-        final phoneValid = _loginPhoneController.text.trim().length >= 11;
-        final codeValid = _smsCodeController.text.trim().length >= 4;
-        return Column(
-          key: const ValueKey('sms'),
-          children: [
-            _phoneField(_loginPhoneController),
-            if (_smsRequested) ...[
-              SizedBox(height: 12.h),
-              _codeField(_smsCodeController),
-            ],
-            SizedBox(height: 16.h),
-            AppButton(
-              text: _smsRequested ? '进入乐鱼故事' : '获取验证码',
-              isLoading: sessionState.submitting,
-              height: 54.h,
-              onPressed: !phoneValid
-                  ? null
-                  : () async {
-                      if (!_smsRequested) {
-                        await _requestCode(phone: _loginPhoneController.text, purpose: 'login');
-                        if (mounted) {
-                          setState(() => _smsRequested = true);
-                        }
-                        return;
-                      }
-                      if (!codeValid) return;
-                      await sessionNotifier.loginWithSms(
-                        phoneNumber: _loginPhoneController.text.trim(),
-                        smsCode: _smsCodeController.text.trim(),
-                      );
-                    },
-            ),
-            SizedBox(height: 12.h),
-            Text(
-              '登录即同意《用户协议》和《隐私政策》',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppTheme.mutedInk,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            if (kDebugMode && _loginDebugCode != null) ...[
-              SizedBox(height: 12.h),
-              _debugBadge('调试验证码: $_loginDebugCode'),
-            ],
-          ],
-        );
-      case _AuthMode.password:
-        return Column(
-          key: const ValueKey('password'),
-          children: [
-            _phoneField(_loginPhoneController),
-            SizedBox(height: 12.h),
-            _passwordField(_passwordController, hint: '请输入密码'),
-            SizedBox(height: 16.h),
-            AppButton(
-              text: '登录',
-              isLoading: sessionState.submitting,
-              height: 54.h,
-              onPressed: _loginPhoneController.text.trim().length >= 11 &&
-                      _passwordController.text.trim().length >= 6
-                  ? () => sessionNotifier.loginWithPassword(
-                        phoneNumber: _loginPhoneController.text.trim(),
-                        password: _passwordController.text.trim(),
-                      )
-                  : null,
-            ),
-          ],
-        );
-      case _AuthMode.register:
-        return Column(
-          key: const ValueKey('register'),
-          children: [
-            _phoneField(_registerPhoneController),
-            SizedBox(height: 10.h),
-            _codeField(_registerCodeController),
-            SizedBox(height: 4.h),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: _registerPhoneController.text.trim().length >= 11
-                    ? () => _requestCode(
-                          phone: _registerPhoneController.text,
-                          purpose: 'register',
-                        )
-                    : null,
-                child: const Text('获取注册验证码'),
-              ),
-            ),
-            SizedBox(height: 4.h),
-            _passwordField(_registerPasswordController, hint: '设置 6 位以上密码'),
-            SizedBox(height: 14.h),
-            AppButton(
-              text: '注册并登录',
-              isLoading: sessionState.submitting,
-              height: 52.h,
-              onPressed: _registerPhoneController.text.trim().length >= 11 &&
-                      _registerCodeController.text.trim().length >= 4 &&
-                      _registerPasswordController.text.trim().length >= 6
-                  ? () => sessionNotifier.register(
-                        phoneNumber: _registerPhoneController.text.trim(),
-                        password: _registerPasswordController.text.trim(),
-                        smsCode: _registerCodeController.text.trim(),
-                      )
-                  : null,
-            ),
-            if (kDebugMode && _registerDebugCode != null) ...[
-              SizedBox(height: 12.h),
-              _debugBadge('调试验证码: $_registerDebugCode'),
-            ],
-          ],
-        );
+  bool _canLogin() {
+    return _loginPhoneController.text.trim().length >= 11 &&
+        _loginCodeController.text.trim().length >= 4;
+  }
+
+  bool _canRegister() {
+    return _registerPhoneController.text.trim().length >= 11 &&
+        _registerCodeController.text.trim().length >= 4 &&
+        _registerPasswordController.text.trim().length >= 6;
+  }
+
+  Future<void> _register(SessionController sessionNotifier) async {
+    final phone = _registerPhoneController.text.trim();
+    final password = _registerPasswordController.text.trim();
+    final smsCode = _registerCodeController.text.trim();
+    if (smsCode.isEmpty) {
+      _showMessage('验证码已发送，请输入短信验证码后再注册');
+      return;
     }
+
+    await sessionNotifier.register(
+      phoneNumber: phone,
+      password: password,
+      smsCode: smsCode,
+    );
   }
 
-  String _titleForMode() {
-    switch (_mode) {
-      case _AuthMode.sms:
-        return '手机号登录';
-      case _AuthMode.password:
-        return '密码登录';
-      case _AuthMode.register:
-        return '注册账号';
+  Future<void> _login(SessionController sessionNotifier) async {
+    final phone = _loginPhoneController.text.trim();
+    final smsCode = _loginCodeController.text.trim();
+    if (smsCode.isEmpty) {
+      _showMessage('验证码已发送，请输入短信验证码后再登录');
+      return;
     }
-  }
 
-  double _cardHeightForMode(double maxHeight) {
-    final target = switch (_mode) {
-      _AuthMode.sms => _smsRequested ? 404.h : 322.h,
-      _AuthMode.password => 378.h,
-      _AuthMode.register => 470.h,
-    };
-    return target.clamp(300.h, maxHeight);
-  }
-
-  void _switchMode(_AuthMode mode) {
-    if (_mode == mode) return;
-    setState(() {
-      _mode = mode;
-      if (mode != _AuthMode.sms) {
-        _smsRequested = false;
-      }
-    });
-  }
-
-  Widget _phoneField(TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      keyboardType: TextInputType.phone,
-      onChanged: (_) => setState(() {}),
-      decoration: const InputDecoration(hintText: '请输入手机号'),
+    await sessionNotifier.loginWithSms(
+      phoneNumber: phone,
+      smsCode: smsCode,
     );
   }
 
-  Widget _codeField(TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      onChanged: (_) => setState(() {}),
-      decoration: const InputDecoration(hintText: '请输入验证码'),
-    );
-  }
-
-  Widget _passwordField(TextEditingController controller, {required String hint}) {
-    return TextField(
-      controller: controller,
-      obscureText: true,
-      onChanged: (_) => setState(() {}),
-      decoration: InputDecoration(hintText: hint),
-    );
-  }
-
-  Future<void> _requestCode({
-    required String phone,
-    required String purpose,
-  }) async {
-    final result = await ref.read(authRepositoryProvider).requestSmsCode(
-          phoneNumber: phone.trim(),
-          purpose: purpose,
-        );
-    if (!mounted) return;
-    setState(() {
-      if (purpose == 'login') {
+  Future<bool> _requestLoginCode(String phone) async {
+    setState(() => _requestingLoginCode = true);
+    try {
+      final result = await ref.read(authRepositoryProvider).requestSmsCode(
+            phoneNumber: phone,
+            purpose: 'login',
+          );
+      if (!mounted) return false;
+      setState(() {
         _loginDebugCode = result.debugCode;
-      } else {
-        _registerDebugCode = result.debugCode;
-      }
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('验证码已发送到 ${result.phoneNumber}')),
-    );
+        if (kDebugMode && result.debugCode != null) {
+          _loginCodeController.text = result.debugCode!;
+        }
+      });
+      _showMessage('验证码已发送到 ${result.phoneNumber}');
+      return true;
+    } catch (error) {
+      if (mounted) _showMessage(_friendlyError(error));
+      return false;
+    } finally {
+      if (mounted) setState(() => _requestingLoginCode = false);
+    }
   }
 
-  Widget _debugBadge(String text) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.74),
-        borderRadius: BorderRadius.circular(18.r),
+  Future<bool> _requestRegisterCode(String phone) async {
+    setState(() => _requestingRegisterCode = true);
+    try {
+      final result = await ref.read(authRepositoryProvider).requestSmsCode(
+            phoneNumber: phone,
+            purpose: 'register',
+          );
+      if (!mounted) return false;
+      setState(() {
+        _registerDebugCode = result.debugCode;
+        if (kDebugMode && result.debugCode != null) {
+          _registerCodeController.text = result.debugCode!;
+        }
+      });
+      _showMessage('验证码已发送到 ${result.phoneNumber}');
+      return true;
+    } catch (error) {
+      if (mounted) _showMessage(_friendlyError(error));
+      return false;
+    } finally {
+      if (mounted) setState(() => _requestingRegisterCode = false);
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  String _friendlyError(Object error) {
+    final raw = error.toString().trim();
+    if (raw.startsWith('Exception: ')) {
+      return raw.substring('Exception: '.length);
+    }
+    return raw;
+  }
+}
+
+class _RegisterView extends StatelessWidget {
+  const _RegisterView({
+    required this.phoneController,
+    required this.codeController,
+    required this.passwordController,
+    required this.debugCode,
+    required this.requestingCode,
+    required this.submitting,
+    required this.onChanged,
+    required this.onRequestCode,
+    required this.onLoginTap,
+    required this.onSubmit,
+  });
+
+  final TextEditingController phoneController;
+  final TextEditingController codeController;
+  final TextEditingController passwordController;
+  final String? debugCode;
+  final bool requestingCode;
+  final bool submitting;
+  final VoidCallback onChanged;
+  final VoidCallback? onRequestCode;
+  final VoidCallback onLoginTap;
+  final VoidCallback? onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    return _AuthFrame(
+      topBar: const _TopBar(trailingIcon: Icons.tune_rounded),
+      hero: const _GradientHeroCard(
+        eyebrow: '免费体验',
+        title: '新用户注册 ✨',
+        subtitle: '用 AI 为孩子生成温柔又好玩的睡前故事',
+        badge: '每月 6 个故事',
       ),
-      child: Text(
-        text,
-        style: TextStyle(color: AppTheme.purple, fontSize: 12.sp, fontWeight: FontWeight.w700),
+      form: _SoftPanel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const _PanelTitle(
+              title: '新用户注册',
+              subtitle: '加入快乐鱼群',
+            ),
+            SizedBox(height: 12.h),
+            _ModernInput(
+              label: '手机号 / 邮箱',
+              hint: '输入手机号或邮箱',
+              icon: Icons.person_outline_rounded,
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(11),
+              ],
+              onChanged: onChanged,
+            ),
+            SizedBox(height: 9.h),
+            _CodeInputRow(
+              controller: codeController,
+              requesting: requestingCode,
+              onChanged: onChanged,
+              onRequestCode: onRequestCode,
+            ),
+            SizedBox(height: 9.h),
+            _ModernInput(
+              label: '设置密码',
+              hint: '至少 6 位密码',
+              icon: Icons.lock_outline_rounded,
+              controller: passwordController,
+              obscureText: true,
+              onChanged: onChanged,
+            ),
+            if (kDebugMode && debugCode != null) ...[
+              SizedBox(height: 8.h),
+              _DebugCodeBadge(code: debugCode!),
+            ],
+            SizedBox(height: 12.h),
+            _GradientButton(
+              label: '立即注册',
+              loading: submitting,
+              onPressed: onSubmit,
+            ),
+            SizedBox(height: 3.h),
+            _TextSwitchButton(
+              label: '已有账号？立即登录',
+              onPressed: onLoginTap,
+            ),
+          ],
+        ),
+      ),
+      footer: const _ParentSafetyCard(),
+    );
+  }
+}
+
+class _LoginView extends StatelessWidget {
+  const _LoginView({
+    required this.phoneController,
+    required this.codeController,
+    required this.debugCode,
+    required this.requestingCode,
+    required this.submitting,
+    required this.onChanged,
+    required this.onRequestCode,
+    required this.onRegisterTap,
+    required this.onSubmit,
+  });
+
+  final TextEditingController phoneController;
+  final TextEditingController codeController;
+  final String? debugCode;
+  final bool requestingCode;
+  final bool submitting;
+  final VoidCallback onChanged;
+  final VoidCallback? onRequestCode;
+  final VoidCallback onRegisterTap;
+  final VoidCallback? onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    return _AuthFrame(
+      topBar: const _TopBar(trailingIcon: Icons.tune_rounded),
+      hero: const _GradientHeroCard(
+        eyebrow: '欢迎回来',
+        title: '欢迎回来！',
+        subtitle: '手机验证码快速进入故事世界',
+        badge: '继续听故事',
+      ),
+      form: _SoftPanel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const _PanelTitle(
+              title: '验证码登录',
+              subtitle: '一分钟回到你的奇幻书架',
+            ),
+            SizedBox(height: 12.h),
+            _ModernInput(
+              label: '手机号 / 邮箱',
+              hint: '输入账号',
+              icon: Icons.person_outline_rounded,
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(11),
+              ],
+              onChanged: onChanged,
+            ),
+            SizedBox(height: 9.h),
+            _CodeInputRow(
+              controller: codeController,
+              requesting: requestingCode,
+              onChanged: onChanged,
+              onRequestCode: onRequestCode,
+            ),
+            if (kDebugMode && debugCode != null) ...[
+              SizedBox(height: 8.h),
+              _DebugCodeBadge(code: debugCode!),
+            ],
+            SizedBox(height: 12.h),
+            _GradientButton(
+              label: '登录',
+              loading: submitting,
+              onPressed: onSubmit,
+            ),
+            SizedBox(height: 3.h),
+            _TextSwitchButton(
+              label: '新用户注册',
+              onPressed: onRegisterTap,
+            ),
+          ],
+        ),
+      ),
+      footer: const _SocialAndGuardianFooter(),
+    );
+  }
+}
+
+class _AuthFrame extends StatelessWidget {
+  const _AuthFrame({
+    required this.topBar,
+    required this.hero,
+    required this.form,
+    required this.footer,
+  });
+
+  final Widget topBar;
+  final Widget hero;
+  final Widget form;
+  final Widget footer;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(28.w, 14.h, 28.w, 14.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  topBar,
+                  SizedBox(height: 12.h),
+                  hero,
+                  SizedBox(height: 12.h),
+                  form,
+                  SizedBox(height: 10.h),
+                  footer,
+                  SizedBox(height: 8.h),
+                  Text(
+                    '© 2024 乐鱼故事. 为孩子的梦想保驾护航.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: const Color(0xFFB8B3C5),
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.trailingIcon});
+
+  final IconData trailingIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 46.w,
+          height: 46.w,
+          child: Image.asset(
+            'assets/images/joyfish_logo.png',
+            fit: BoxFit.contain,
+          ),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '乐鱼故事',
+                style: TextStyle(
+                  color: const Color(0xFF2E3445),
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              SizedBox(height: 2.h),
+              Text(
+                '给小朋友的 AI 故事乐园',
+                style: TextStyle(
+                  color: const Color(0xFF778197),
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+        _IconCircle(icon: Icons.search_rounded),
+        SizedBox(width: 10.w),
+        _IconCircle(icon: trailingIcon),
+      ],
+    );
+  }
+}
+
+class _IconCircle extends StatelessWidget {
+  const _IconCircle({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 42.w,
+      height: 42.w,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x140F172A),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Icon(icon, color: const Color(0xFF6F7A91), size: 25.sp),
+    );
+  }
+}
+
+class _GradientHeroCard extends StatelessWidget {
+  const _GradientHeroCard({
+    required this.eyebrow,
+    required this.title,
+    required this.subtitle,
+    required this.badge,
+  });
+
+  final String eyebrow;
+  final String title;
+  final String subtitle;
+  final String badge;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 132.h,
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28.r),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4F8DF6), Color(0xFF7757F6), Color(0xFFFF6AA2)],
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x267757F6),
+            blurRadius: 26,
+            offset: Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            right: -30.w,
+            top: -28.h,
+            child: _SoftBlob(size: 96.w, color: const Color(0xFFFFC33D)),
+          ),
+          Positioned(
+            right: 6.w,
+            bottom: -38.h,
+            child: _SoftBlob(size: 82.w, color: const Color(0xFFFF8BC7)),
+          ),
+          Positioned(
+            left: 0,
+            bottom: 2.h,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(22.r),
+              ),
+              child: Text(
+                badge,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 230.w,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    eyebrow,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.82),
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  SizedBox(height: 5.h),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 23.sp,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  SizedBox(height: 5.h),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 13.sp,
+                      height: 1.35,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            right: 18.w,
+            top: 18.h,
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: const Color(0xFFFFF176),
+              size: 28.sp,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _FooterLink extends StatelessWidget {
-  const _FooterLink({
-    required this.text,
-    required this.active,
-    required this.onTap,
+class _SoftBlob extends StatelessWidget {
+  const _SoftBlob({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: -0.25,
+      child: Container(
+        width: size,
+        height: size * 0.72,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.84),
+          borderRadius: BorderRadius.circular(size * 0.32),
+        ),
+      ),
+    );
+  }
+}
+
+class _SoftPanel extends StatelessWidget {
+  const _SoftPanel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(20.w, 18.h, 20.w, 10.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32.r),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x120F172A),
+            blurRadius: 24,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _PanelTitle extends StatelessWidget {
+  const _PanelTitle({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            color: const Color(0xFF2D3446),
+            fontSize: 23.sp,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        SizedBox(height: 3.h),
+        Text(
+          subtitle,
+          style: TextStyle(
+            color: const Color(0xFF768299),
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ModernInput extends StatelessWidget {
+  const _ModernInput({
+    required this.label,
+    required this.hint,
+    required this.icon,
+    required this.controller,
+    required this.onChanged,
+    this.keyboardType,
+    this.inputFormatters,
+    this.obscureText = false,
   });
 
-  final String text;
-  final bool active;
-  final VoidCallback onTap;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final TextEditingController controller;
+  final VoidCallback onChanged;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final bool obscureText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _FieldLabel(label),
+        SizedBox(height: 5.h),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
+          obscureText: obscureText,
+          onChanged: (_) => onChanged(),
+          style: TextStyle(
+            fontSize: 16.sp,
+            color: const Color(0xFF2D3446),
+            fontWeight: FontWeight.w800,
+          ),
+          decoration: _fieldDecoration(
+            hint: hint,
+            icon: icon,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CodeInputRow extends StatelessWidget {
+  const _CodeInputRow({
+    required this.controller,
+    required this.requesting,
+    required this.onChanged,
+    required this.onRequestCode,
+  });
+
+  final TextEditingController controller;
+  final bool requesting;
+  final VoidCallback onChanged;
+  final VoidCallback? onRequestCode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _FieldLabel('手机验证码'),
+        SizedBox(height: 5.h),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6),
+                ],
+                onChanged: (_) => onChanged(),
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  color: const Color(0xFF2D3446),
+                  fontWeight: FontWeight.w800,
+                ),
+                decoration: _fieldDecoration(
+                  hint: '验证码',
+                  icon: Icons.verified_outlined,
+                ),
+              ),
+            ),
+            SizedBox(width: 10.w),
+            SizedBox(
+              width: 106.w,
+              height: 48.h,
+              child: FilledButton(
+                onPressed: onRequestCode,
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF7357F6),
+                  disabledBackgroundColor: const Color(0xFFE4E1EB),
+                  foregroundColor: Colors.white,
+                  disabledForegroundColor: const Color(0xFFAAA4B8),
+                  elevation: 0,
+                  padding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24.r),
+                  ),
+                ),
+                child: requesting
+                    ? SizedBox(
+                        width: 18.w,
+                        height: 18.w,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        '获取验证码',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: TextStyle(
+        color: const Color(0xFF303748),
+        fontSize: 14.sp,
+        fontWeight: FontWeight.w900,
+      ),
+    );
+  }
+}
+
+InputDecoration _fieldDecoration({
+  required String hint,
+  required IconData icon,
+}) {
+  return InputDecoration(
+    isDense: true,
+    hintText: hint,
+    hintStyle: TextStyle(
+      color: const Color(0xFFB8B2C5),
+      fontSize: 15.sp,
+      fontWeight: FontWeight.w800,
+    ),
+    prefixIcon: Icon(icon, color: const Color(0xFF778197), size: 24.sp),
+    prefixIconConstraints: BoxConstraints(minWidth: 42.w, minHeight: 48.h),
+    filled: true,
+    fillColor: const Color(0xFFF6F4FA),
+    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(24.r),
+      borderSide: BorderSide.none,
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(24.r),
+      borderSide: BorderSide.none,
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(24.r),
+      borderSide: const BorderSide(color: Color(0xFF7357F6), width: 1.7),
+    ),
+  );
+}
+
+class _GradientButton extends StatelessWidget {
+  const _GradientButton({
+    required this.label,
+    required this.loading,
+    required this.onPressed,
+  });
+
+  final String label;
+  final bool loading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null && !loading;
+    return Opacity(
+      opacity: enabled ? 1 : 0.55,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF7A5AF8), Color(0xFF6B4DF3)],
+          ),
+          borderRadius: BorderRadius.circular(28.r),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x287A5AF8),
+              blurRadius: 20,
+              offset: Offset(0, 10),
+            ),
+          ],
+        ),
+        child: SizedBox(
+          height: 52.h,
+          child: FilledButton(
+            onPressed: loading ? null : onPressed,
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              disabledBackgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28.r),
+              ),
+            ),
+            child: loading
+                ? SizedBox(
+                    width: 20.w,
+                    height: 20.w,
+                    child: const CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.4,
+                    ),
+                  )
+                : Text(
+                    label,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TextSwitchButton extends StatelessWidget {
+  const _TextSwitchButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: onTap,
+      onPressed: onPressed,
       child: Text(
-        text,
+        label,
         style: TextStyle(
-          color: active ? AppTheme.purple : AppTheme.mutedInk,
-          fontWeight: active ? FontWeight.w700 : FontWeight.w600,
-          fontSize: 12.sp,
+          color: const Color(0xFF7357F6),
+          fontSize: 15.sp,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
   }
 }
 
-class _DotDivider extends StatelessWidget {
+class _DebugCodeBadge extends StatelessWidget {
+  const _DebugCodeBadge({required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEDE8FF),
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Text(
+          '调试验证码 $code',
+          style: TextStyle(
+            color: const Color(0xFF7357F6),
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ParentSafetyCard extends StatelessWidget {
+  const _ParentSafetyCard();
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 4.w,
-      height: 4.h,
-      margin: EdgeInsets.symmetric(horizontal: 2.w),
-      decoration: const BoxDecoration(
-        color: AppTheme.mutedInk,
-        shape: BoxShape.circle,
+      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 14.h),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.86),
+        borderRadius: BorderRadius.circular(24.r),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x100F172A),
+            blurRadius: 22,
+            offset: Offset(0, 10),
+          ),
+        ],
       ),
+      child: Row(
+        children: [
+          Container(
+            width: 48.w,
+            height: 48.w,
+            decoration: const BoxDecoration(
+              color: Color(0xFFEAFBDF),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.shield_rounded,
+              color: const Color(0xFF49A34A),
+              size: 25.sp,
+            ),
+          ),
+          SizedBox(width: 14.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '家长验证保护',
+                  style: TextStyle(
+                    color: const Color(0xFF2D3446),
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                SizedBox(height: 3.h),
+                Text(
+                  '新账户注册需成人确认，保护儿童隐私安全。',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: const Color(0xFF768299),
+                    fontSize: 12.sp,
+                    height: 1.28,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SocialAndGuardianFooter extends StatelessWidget {
+  const _SocialAndGuardianFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            const Expanded(child: Divider(color: Color(0xFFE0DDE8))),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Text(
+                '社交账号登录',
+                style: TextStyle(
+                  color: const Color(0xFF2D3446),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            const Expanded(child: Divider(color: Color(0xFFE0DDE8))),
+          ],
+        ),
+        SizedBox(height: 12.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            _SocialBubble(icon: Icons.wechat_rounded, color: Color(0xFF5CCD5E)),
+            SizedBox(width: 22),
+            _SocialBubble(icon: Icons.water_rounded, color: Color(0xFF2FA8F2)),
+          ],
+        ),
+        SizedBox(height: 14.h),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24.r),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x100F172A),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.account_tree_outlined,
+                color: const Color(0xFF778197),
+                size: 21.sp,
+              ),
+              SizedBox(width: 9.w),
+              Text(
+                '家长验证',
+                style: TextStyle(
+                  color: const Color(0xFF2D3446),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SocialBubble extends StatelessWidget {
+  const _SocialBubble({required this.icon, required this.color});
+
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 54.w,
+      height: 54.w,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x140F172A),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Icon(icon, color: color, size: 27.sp),
     );
   }
 }

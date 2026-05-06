@@ -15,7 +15,7 @@ Future<void> bootstrap() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   AppLogger.init();
-  AppLogger.info('Joyfish app booting');
+  AppLogger.info('乐鱼故事 app booting');
 
   try {
     await AppConfig.init();

@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../common/themes/app_theme.dart';
 import '../../../core/router/app_router.dart';
@@ -55,26 +54,17 @@ class _SplashPageState extends ConsumerState<SplashPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
+                SizedBox(
                   width: 120.w,
                   height: 120.w,
-                  padding: EdgeInsets.all(18.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(36.r),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x1A3B82F6),
-                        blurRadius: 28,
-                        offset: Offset(0, 14),
-                      ),
-                    ],
+                  child: Image.asset(
+                    'assets/images/joyfish_logo.png',
+                    fit: BoxFit.contain,
                   ),
-                  child: SvgPicture.asset('assets/images/home_hero.svg'),
                 ),
                 SizedBox(height: 28.h),
                 Text(
-                  'Joyfish',
+                  '乐鱼故事',
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
                 SizedBox(height: 10.h),

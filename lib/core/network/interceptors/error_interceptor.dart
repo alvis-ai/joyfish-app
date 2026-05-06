@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../log/app_logger.dart';
@@ -34,10 +35,22 @@ class ErrorInterceptor extends Interceptor {
 
   String _getErrorMessage(DioException err) {
     final payload = err.response?.data;
-    if (payload is Map<String, dynamic>) {
-      final message = payload['message'] as String?;
+    if (payload is Map) {
+      final message = payload['message']?.toString();
       if (message != null && message.trim().isNotEmpty) {
         return message.trim();
+      }
+    }
+
+    final rawError = err.error?.toString();
+    if (rawError != null) {
+      if (rawError.contains('App Transport Security')) {
+        return 'iPhone 当前不允许访问开发服务器，请重新安装最新构建';
+      }
+      if (rawError.contains('Connection refused') ||
+          rawError.contains('Failed host lookup') ||
+          rawError.contains('No route to host')) {
+        return '无法连接到开发服务器，请确认手机与电脑在同一网络且后端已启动';
       }
     }
 
@@ -50,12 +63,14 @@ class ErrorInterceptor extends Interceptor {
         return '接收超时，请检查网络';
       case DioExceptionType.badResponse:
         return _handleStatusCode(err.response?.statusCode);
+      case DioExceptionType.badCertificate:
+        return '证书校验失败，请检查服务地址';
       case DioExceptionType.cancel:
         return '请求已取消';
+      case DioExceptionType.connectionError:
+        return '无法连接到开发服务器，请确认手机与电脑在同一网络且后端已启动';
       case DioExceptionType.unknown:
         return '网络异常，请稍后重试';
-      default:
-        return '未知错误';
     }
   }
 
@@ -84,6 +99,12 @@ class ErrorInterceptor extends Interceptor {
   }
 
   void _showErrorToast(String message) {
+    if (kIsWeb ||
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return;
+    }
+
     Fluttertoast.showToast(
       msg: message,
       toastLength: Toast.LENGTH_SHORT,

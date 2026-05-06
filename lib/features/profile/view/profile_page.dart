@@ -2,17 +2,15 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../common/themes/app_theme.dart';
 import '../../../common/widgets/app_button.dart';
-import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../core/router/app_router.dart';
 import '../../auth/providers/session_providers.dart';
 import '../../children/providers/child_providers.dart';
 import '../../story/providers/story_providers.dart';
 
-class ProfilePage extends ConsumerStatefulWidget {
+class ProfilePage extends ConsumerWidget {
   const ProfilePage({
     super.key,
     required this.onManageChildren,
@@ -23,161 +21,91 @@ class ProfilePage extends ConsumerStatefulWidget {
   final VoidCallback onManageVoice;
 
   @override
-  ConsumerState<ProfilePage> createState() => _ProfilePageState();
-}
-
-class _ProfilePageState extends ConsumerState<ProfilePage> {
-  bool _nightMode = false;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionControllerProvider);
     final childState = ref.watch(childControllerProvider);
     final storyState = ref.watch(storyLibraryControllerProvider);
     final phone = session.user?.phoneNumber ?? '未设置手机号';
 
     return ListView(
-      padding: EdgeInsets.fromLTRB(26.w, 24.h, 26.w, 140.h),
+      padding: EdgeInsets.fromLTRB(22.w, 10.h, 22.w, 140.h),
       children: [
-        JoyfishCard(
-          radius: 30.r,
-          padding: EdgeInsets.all(22.w),
-          backgroundColor: Colors.transparent,
-          shadow: const [
-            BoxShadow(
-              color: Color(0x24C7A4C9),
-              blurRadius: 24,
-              offset: Offset(0, 14),
+        const _VipTopBar(),
+        SizedBox(height: 26.h),
+        _StatusCard(phone: phone, storyCount: storyState.items.length),
+        SizedBox(height: 22.h),
+        _BenefitCard(
+          title: '普通用户',
+          color: const Color(0xFFE7E3DA),
+          icon: Icons.person_outline_rounded,
+          items: const ['每月 6 篇故事', '标准应用主题', '包含部分广告'],
+          positive: false,
+        ),
+        SizedBox(height: 18.h),
+        _BenefitCard(
+          title: 'VIP 探索者',
+          color: AppTheme.peach,
+          icon: Icons.stars_rounded,
+          items: const ['每月 60 篇故事', '专属梦幻主题', '全程无广告干扰'],
+          positive: true,
+        ),
+        SizedBox(height: 28.h),
+        Center(
+          child: Text(
+            '选择你的魔法计划',
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(color: AppTheme.olive),
+          ),
+        ),
+        SizedBox(height: 22.h),
+        _PlanCard(
+          icon: Icons.calendar_month_rounded,
+          title: '连续包月会员',
+          subtitle: '随时取消，轻松开启',
+          price: '¥16',
+          unit: '/月',
+          button: '立即订阅',
+          highlighted: false,
+        ),
+        SizedBox(height: 24.h),
+        _PlanCard(
+          icon: Icons.workspace_premium_rounded,
+          title: '年度探险家会员',
+          subtitle: '平均每月仅需 ¥12.5',
+          price: '¥150',
+          unit: '/年',
+          button: '立即开启一整年',
+          highlighted: true,
+        ),
+        SizedBox(height: 26.h),
+        Row(
+          children: [
+            Expanded(
+              child: _MiniAction(
+                icon: Icons.child_care_rounded,
+                title: '${childState.items.length} 个孩子',
+                onTap: onManageChildren,
+              ),
+            ),
+            SizedBox(width: 14.w),
+            Expanded(
+              child: _MiniAction(
+                icon: Icons.record_voice_over_rounded,
+                title: '音色管理',
+                onTap: onManageVoice,
+              ),
             ),
           ],
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF5D9BF0), Color(0xFFA86AFD)],
-              ),
-              borderRadius: BorderRadius.circular(30.r),
-            ),
-            padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 24.h),
-            child: Row(
-              children: [
-                Container(
-                  width: 72.w,
-                  height: 72.w,
-                  padding: EdgeInsets.all(8.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: SvgPicture.asset('assets/images/home_hero.svg'),
-                ),
-                SizedBox(width: 20.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${_displayNameFromPhone(phone)}女士',
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(color: Colors.white),
-                      ),
-                      SizedBox(height: 6.h),
-                      Text(
-                        _maskPhone(phone),
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
-                      ),
-                      SizedBox(height: 18.h),
-                      Row(
-                        children: [
-                          _StatBlock(label: '故事总数', value: '${storyState.items.length}'),
-                          SizedBox(width: 28.w),
-                          _StatBlock(
-                            label: '播放次数',
-                            value: '${storyState.items.fold<int>(0, (sum, item) => sum + (item.readingMinutes ?? 6))}',
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
-        SizedBox(height: 26.h),
-        _SectionLabel(text: '账户信息'),
-        SizedBox(height: 14.h),
-        JoyfishCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              _MenuTile(
-                icon: Icons.person_outline_rounded,
-                title: '个人资料',
-                trailingText: '${_displayNameFromPhone(phone)}女士',
-              ),
-              const Divider(height: 1),
-              _MenuTile(
-                icon: Icons.child_care_outlined,
-                title: '孩子管理',
-                trailingText: '${childState.items.length}个小朋友',
-                onTap: widget.onManageChildren,
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 22.h),
-        _SectionLabel(text: '音频设置'),
-        SizedBox(height: 14.h),
-        JoyfishCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              _MenuTile(
-                icon: Icons.volume_up_outlined,
-                title: '音色管理',
-                trailingText: '已录制',
-                onTap: widget.onManageVoice,
-              ),
-              const Divider(height: 1),
-              const _MenuTile(
-                icon: Icons.notifications_none_rounded,
-                title: '定时提醒',
-                trailingText: '晚上8:00',
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 22.h),
-        _SectionLabel(text: '通用设置'),
-        SizedBox(height: 14.h),
-        JoyfishCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              _SwitchTile(
-                icon: Icons.dark_mode_outlined,
-                title: '夜间模式',
-                value: _nightMode,
-                onChanged: (value) => setState(() => _nightMode = value),
-              ),
-              const Divider(height: 1),
-              const _MenuTile(
-                icon: Icons.shield_outlined,
-                title: '隐私设置',
-              ),
-              const Divider(height: 1),
-              const _MenuTile(
-                icon: Icons.help_outline_rounded,
-                title: '帮助与反馈',
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 26.h),
+        SizedBox(height: 18.h),
         AppButton(
           text: '退出登录',
           backgroundColor: Colors.white,
-          textColor: const Color(0xFFFF4D4D),
-          icon: const Icon(Icons.logout_rounded, color: Color(0xFFFF4D4D)),
+          textColor: const Color(0xFFD23A3A),
+          borderSide: const BorderSide(color: Color(0xFFD8D0BD), width: 2),
+          icon: const Icon(Icons.logout_rounded, color: Color(0xFFD23A3A)),
           onPressed: () async {
             await ref.read(sessionControllerProvider.notifier).logout();
             if (context.mounted) {
@@ -188,114 +116,282 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       ],
     );
   }
-
-  String _maskPhone(String phone) {
-    if (phone.length < 7) return phone;
-    return '${phone.substring(0, 3)}****${phone.substring(phone.length - 4)}';
-  }
-
-  String _displayNameFromPhone(String phone) {
-    return '张';
-  }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.text});
-
-  final String text;
+class _VipTopBar extends StatelessWidget {
+  const _VipTopBar();
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: const Color(0xFF72778A),
-          ),
-    );
-  }
-}
-
-class _StatBlock extends StatelessWidget {
-  const _StatBlock({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(color: Colors.white),
-        ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
-        ),
-      ],
-    );
-  }
-}
-
-class _MenuTile extends StatelessWidget {
-  const _MenuTile({
-    required this.icon,
-    required this.title,
-    this.trailingText,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String? trailingText;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      leading: Icon(icon, color: AppTheme.purpleLight),
-      title: Text(title, style: Theme.of(context).textTheme.headlineMedium),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+    return Container(
+      height: 58.h,
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: AppTheme.purpleLight,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(0, 6)),
+        ],
+      ),
+      child: Row(
         children: [
-          if (trailingText != null)
-            Text(
-              trailingText!,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppTheme.mutedInk),
+          Icon(Icons.home_rounded, color: Colors.white, size: 24.sp),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Text(
+              'Story Paradise',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w900),
             ),
-          SizedBox(width: 6.w),
-          Icon(Icons.chevron_right_rounded, color: AppTheme.mutedInk, size: 24.sp),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white, width: 1.5),
+              borderRadius: BorderRadius.circular(99.r),
+            ),
+            child: Text('VIP 中心',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w800)),
+          ),
         ],
       ),
     );
   }
 }
 
-class _SwitchTile extends StatelessWidget {
-  const _SwitchTile({
+class _StatusCard extends StatelessWidget {
+  const _StatusCard({required this.phone, required this.storyCount});
+
+  final String phone;
+  final int storyCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(24.w),
+      decoration: BoxDecoration(
+        color: const Color(0xFFDDEEFF),
+        borderRadius: BorderRadius.circular(28.r),
+        border: Border.all(color: Colors.white, width: 4),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(5, 7)),
+        ],
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            width: 92.w,
+            height: 92.w,
+            child: Image.asset(
+              'assets/images/joyfish_logo.png',
+              fit: BoxFit.contain,
+            ),
+          ),
+          SizedBox(height: 14.h),
+          Text('当前状态',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AppTheme.skyDeep)),
+          SizedBox(height: 8.h),
+          Text('普通小读者', style: Theme.of(context).textTheme.headlineMedium),
+          SizedBox(height: 8.h),
+          Text(
+            '${_maskPhone(phone)} · 已创作 $storyCount 篇故事',
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: AppTheme.skyDeep),
+          ),
+          SizedBox(height: 20.h),
+          Icon(Icons.emoji_events_rounded,
+              color: Colors.white.withValues(alpha: 0.55), size: 58.sp),
+        ],
+      ),
+    );
+  }
+
+  static String _maskPhone(String phone) {
+    if (phone.length < 7) return phone;
+    return '${phone.substring(0, 3)}****${phone.substring(phone.length - 4)}';
+  }
+}
+
+class _BenefitCard extends StatelessWidget {
+  const _BenefitCard({
+    required this.title,
+    required this.color,
+    required this.icon,
+    required this.items,
+    required this.positive,
+  });
+
+  final String title;
+  final Color color;
+  final IconData icon;
+  final List<String> items;
+  final bool positive;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(22.w),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(22.r),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(4, 6)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(icon,
+                    color: positive ? AppTheme.olive : AppTheme.mutedInk),
+              ),
+              SizedBox(width: 14.w),
+              Text(title, style: Theme.of(context).textTheme.headlineMedium),
+            ],
+          ),
+          SizedBox(height: 14.h),
+          ...items.map(
+            (item) => Padding(
+              padding: EdgeInsets.only(bottom: 9.h),
+              child: Row(
+                children: [
+                  Icon(
+                    positive
+                        ? Icons.check_circle_outline_rounded
+                        : Icons.close_rounded,
+                    color: positive
+                        ? const Color(0xFF2F7D00)
+                        : const Color(0xFFD23A3A),
+                    size: 18.sp,
+                  ),
+                  SizedBox(width: 10.w),
+                  Text(item, style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlanCard extends StatelessWidget {
+  const _PlanCard({
     required this.icon,
     required this.title,
-    required this.value,
-    required this.onChanged,
+    required this.subtitle,
+    required this.price,
+    required this.unit,
+    required this.button,
+    required this.highlighted,
   });
 
   final IconData icon;
   final String title;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+  final String subtitle;
+  final String price;
+  final String unit;
+  final String button;
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: AppTheme.purpleLight),
-      title: Text(title, style: Theme.of(context).textTheme.headlineMedium),
-      trailing: Switch(value: value, onChanged: onChanged),
+    return Container(
+      padding: EdgeInsets.all(24.w),
+      decoration: BoxDecoration(
+        color: highlighted ? AppTheme.peach : Colors.white,
+        borderRadius: BorderRadius.circular(28.r),
+        border:
+            highlighted ? Border.all(color: AppTheme.olive, width: 2.4) : null,
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(4, 7)),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: AppTheme.skyDeep, size: 34.sp),
+          SizedBox(height: 14.h),
+          Text(title, style: Theme.of(context).textTheme.headlineMedium),
+          SizedBox(height: 6.h),
+          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+          SizedBox(height: 24.h),
+          RichText(
+            text: TextSpan(
+              text: price,
+              style: TextStyle(
+                  color: AppTheme.olive,
+                  fontSize: 34.sp,
+                  fontWeight: FontWeight.w900),
+              children: [
+                TextSpan(
+                  text: unit,
+                  style:
+                      TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 18.h),
+          AppButton(
+            text: button,
+            height: 54.h,
+            backgroundColor:
+                highlighted ? AppTheme.olive : AppTheme.purpleLight,
+            textColor: highlighted ? Colors.white : AppTheme.skyDeep,
+            onPressed: () {},
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniAction extends StatelessWidget {
+  const _MiniAction(
+      {required this.icon, required this.title, required this.onTap});
+
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 16.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22.r),
+          border: Border.all(color: const Color(0xFFD8D0BD), width: 2),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: AppTheme.skyDeep),
+            SizedBox(height: 8.h),
+            Text(title, style: Theme.of(context).textTheme.bodyMedium),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -34,7 +34,32 @@ void main() {
     );
 
     expect(find.text('乐鱼故事'), findsOneWidget);
-    expect(find.text('手机号登录'), findsWidgets);
+    expect(find.text('新用户注册'), findsOneWidget);
     expect(find.text('获取验证码'), findsOneWidget);
+    expect(find.text('立即注册'), findsOneWidget);
+    expect(find.text('已有账号？立即登录'), findsOneWidget);
+  });
+
+  testWidgets('Login page uses sms code first', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: ScreenUtilInit(
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          builder: (context, child) {
+            return const MaterialApp(home: AuthPage());
+          },
+        ),
+      ),
+    );
+
+    await tester.ensureVisible(find.text('已有账号？立即登录'));
+    await tester.tap(find.text('已有账号？立即登录'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('手机验证码快速进入故事世界'), findsOneWidget);
+    expect(find.text('手机验证码'), findsOneWidget);
+    expect(find.text('获取验证码'), findsOneWidget);
+    expect(find.text('密码'), findsNothing);
   });
 }

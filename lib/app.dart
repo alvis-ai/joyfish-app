@@ -22,6 +22,7 @@ class _AppState extends ConsumerState<App> {
   @override
   void initState() {
     super.initState();
+    debugPrint('JOYFISH App.initState()');
     _appRouter = AppRouter();
     _authSubscription = AuthSessionBus.stream.listen((event) async {
       await ref.read(sessionControllerProvider.notifier).handleSessionExpired();
@@ -37,8 +38,9 @@ class _AppState extends ConsumerState<App> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('JOYFISH App.build()');
     return MaterialApp.router(
-      title: 'Joyfish',
+      title: '乐鱼故事',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.lightTheme,
@@ -46,7 +48,8 @@ class _AppState extends ConsumerState<App> {
       routerConfig: _appRouter.config(),
       builder: (context, child) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: const TextScaler.linear(1.0)),
           child: child ?? const SizedBox.shrink(),
         );
       },

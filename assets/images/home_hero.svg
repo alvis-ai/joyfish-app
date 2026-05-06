@@ -1,35 +1,66 @@
 <svg width="220" height="220" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="body" x1="56" y1="34" x2="160" y2="188" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#68C8FF"/>
-      <stop offset="1" stop-color="#2F74F3"/>
+    <linearGradient id="badge" x1="45" y1="24" x2="174" y2="187" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFBEF"/>
+      <stop offset="1" stop-color="#F2E8CC"/>
     </linearGradient>
-    <linearGradient id="beak" x1="72" y1="122" x2="157" y2="122" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FF9800"/>
-      <stop offset="1" stop-color="#FFB400"/>
+    <linearGradient id="body" x1="67" y1="59" x2="153" y2="122" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE45C"/>
+      <stop offset="0.56" stop-color="#FFB11E"/>
+      <stop offset="1" stop-color="#FF7A2F"/>
     </linearGradient>
-    <linearGradient id="fin" x1="145" y1="90" x2="184" y2="123" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#63C1FF"/>
-      <stop offset="1" stop-color="#4A8EF7"/>
+    <linearGradient id="face" x1="118" y1="51" x2="157" y2="105" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE85E"/>
+      <stop offset="1" stop-color="#FFC52A"/>
+    </linearGradient>
+    <linearGradient id="finTeal" x1="44" y1="64" x2="98" y2="125" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5ED7CE"/>
+      <stop offset="1" stop-color="#139AA0"/>
+    </linearGradient>
+    <linearGradient id="finPink" x1="89" y1="108" x2="114" y2="150" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF8FAB"/>
+      <stop offset="1" stop-color="#F55786"/>
+    </linearGradient>
+    <linearGradient id="word" x1="56" y1="152" x2="168" y2="182" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD21F"/>
+      <stop offset="1" stop-color="#F5A600"/>
     </linearGradient>
   </defs>
 
-  <ellipse cx="111" cy="109" rx="58" ry="72" fill="url(#body)"/>
-  <path d="M154 101C169 84 176 80 183 71C177 88 178 96 192 109C178 105 171 109 163 122L154 101Z" fill="url(#fin)"/>
-  <ellipse cx="72" cy="118" rx="19" ry="12" fill="#5FAEF7" fill-opacity="0.9"/>
-  <ellipse cx="149" cy="116" rx="18" ry="12" fill="#5FAEF7" fill-opacity="0.9"/>
-  <path d="M62 117C72 106 91 100 111 100C130 100 149 106 159 117C146 128 130 134 111 134C91 134 75 130 62 117Z" fill="#173763"/>
-  <path d="M72 118C83 111 96 109 111 109C126 109 140 111 157 119L149 134C136 130 124 128 111 128C98 128 85 130 74 135L72 118Z" fill="url(#beak)"/>
-  <ellipse cx="111" cy="118" rx="22" ry="8" fill="#FFD27B" fill-opacity="0.62"/>
+  <ellipse cx="111" cy="114" rx="79" ry="84" fill="#7A6A35" fill-opacity="0.12"/>
+  <g>
+    <path d="M110 24C155 24 188 57 188 104C188 156 156 190 110 190C64 190 32 156 32 104C32 57 65 24 110 24Z" fill="url(#badge)"/>
+    <path d="M110 27C153 27 184 59 184 104C184 153 153 186 110 186C67 186 36 153 36 104C36 59 67 27 110 27Z" stroke="#E5D7B7" stroke-opacity="0.55" stroke-width="2"/>
+  </g>
 
-  <circle cx="88" cy="87" r="18" fill="white"/>
-  <circle cx="132" cy="87" r="18" fill="white"/>
-  <circle cx="87" cy="87" r="11" fill="#273B63"/>
-  <circle cx="131" cy="87" r="11" fill="#273B63"/>
-  <circle cx="84" cy="82" r="3" fill="white"/>
-  <circle cx="128" cy="82" r="3" fill="white"/>
-  <circle cx="89" cy="92" r="2.5" fill="white" fill-opacity="0.9"/>
-  <circle cx="133" cy="92" r="2.5" fill="white" fill-opacity="0.9"/>
+  <g>
+    <path d="M50 93C59 72 76 58 98 52C117 47 137 51 157 66C141 82 128 99 119 122C93 118 70 109 50 93Z" fill="url(#body)"/>
+    <path d="M58 91C70 71 86 59 105 55C116 70 123 89 124 115C100 112 78 104 58 91Z" fill="#FFB63A"/>
+    <path d="M78 72C92 59 110 53 128 57C120 72 114 91 112 112C94 105 83 92 78 72Z" fill="#FFE24D"/>
+    <path d="M101 59C111 54 121 53 132 57C124 73 119 91 118 111C109 97 103 80 101 59Z" fill="#F58B3D"/>
 
-  <path d="M153 119L168 126L162 141L146 134L153 119Z" fill="#FFAA16"/>
+    <path d="M48 81C37 78 27 84 20 98C34 108 47 105 61 93L48 81Z" fill="url(#finTeal)"/>
+    <path d="M49 83C42 88 38 94 35 101" stroke="#168884" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+    <path d="M85 51C82 35 94 27 114 31C116 48 105 59 88 63L85 51Z" fill="url(#finTeal)"/>
+    <path d="M91 42C99 44 106 49 111 56" stroke="#168884" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+    <path d="M71 98C69 113 61 126 48 136C64 143 78 136 87 116L71 98Z" fill="url(#finPink)"/>
+    <path d="M115 114C116 128 111 139 99 148C116 154 129 146 134 127L115 114Z" fill="#E84B7C"/>
+    <path d="M157 74C170 66 180 71 186 88C174 98 161 98 148 87L157 74Z" fill="#FF9B2A"/>
+
+    <circle cx="132" cy="83" r="40" fill="url(#face)"/>
+    <path d="M107 73C113 62 124 56 138 56" stroke="white" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+    <ellipse cx="105" cy="89" rx="9" ry="7" fill="#46BEB8"/>
+    <path d="M87 87C98 81 108 81 119 88C110 101 98 106 84 103L87 87Z" fill="#4CC4BF"/>
+    <path d="M90 94C98 94 106 91 113 86" stroke="#138A8B" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="112" cy="86" rx="5" ry="10" transform="rotate(-12 112 86)" fill="#2EAAA4"/>
+
+    <ellipse cx="114" cy="84" rx="8" ry="5" fill="#F47EA3"/>
+    <ellipse cx="157" cy="85" rx="8" ry="5" fill="#F47EA3"/>
+    <path d="M121 73C123 66 129 66 132 73" stroke="#69323B" stroke-width="5" stroke-linecap="round"/>
+    <path d="M150 73C152 66 158 66 161 73" stroke="#69323B" stroke-width="5" stroke-linecap="round"/>
+    <path d="M131 88C139 97 150 96 156 88C150 111 136 111 131 88Z" fill="#7D2935"/>
+    <path d="M138 102C143 99 149 99 153 103C148 109 142 109 138 102Z" fill="#FF86A9"/>
+  </g>
+
+  <text x="110" y="173" text-anchor="middle" font-family="Arial Rounded MT Bold, Arial, sans-serif" font-size="28" font-weight="900" fill="url(#word)" stroke="#D99D00" stroke-width="0.8">JoyFish</text>
 </svg>

@@ -18,18 +18,20 @@ class JoyfishScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = Container(
-      decoration: const BoxDecoration(gradient: AppTheme.pageGradient),
+      decoration: const BoxDecoration(color: AppTheme.cream),
       child: Stack(
         children: [
           Positioned(
-            left: -40.w,
-            right: -40.w,
-            bottom: bottomNavigationBar == null ? -16.h : 64.h,
+            left: -60.w,
+            right: -60.w,
+            bottom: bottomNavigationBar == null ? -28.h : 70.h,
             child: Container(
-              height: 110.h,
+              height: 112.h,
               decoration: BoxDecoration(
-                color: const Color(0x448FA6FF),
-                borderRadius: BorderRadius.vertical(top: Radius.elliptical(260.w, 36.h)),
+                color: const Color(0x24D4CDBD),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.elliptical(280.w, 42.h),
+                ),
               ),
             ),
           ),
@@ -73,14 +75,14 @@ class JoyfishCard extends StatelessWidget {
       padding: padding ?? EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.white.withValues(alpha: 0.96),
-        borderRadius: BorderRadius.circular(radius ?? 28.r),
-        border: border,
+        borderRadius: BorderRadius.circular(radius ?? 26.r),
+        border: border ?? Border.all(color: const Color(0xFFD8D0BD), width: 2),
         boxShadow: shadow ??
             const [
               BoxShadow(
-                color: Color(0x1ED6A9A7),
-                blurRadius: 24,
-                offset: Offset(0, 12),
+                color: Color(0x33716B5D),
+                blurRadius: 0,
+                offset: Offset(5, 7),
               ),
             ],
       ),
