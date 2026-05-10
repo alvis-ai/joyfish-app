@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../common/themes/app_theme.dart';
 import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../core/router/app_router.dart';
 import '../../children/providers/child_providers.dart';
@@ -78,61 +77,60 @@ class _JoyfishBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+
     return Container(
-      margin: EdgeInsets.fromLTRB(18.w, 0, 18.w, 12.h),
+      margin: EdgeInsets.fromLTRB(
+        18.w,
+        0,
+        18.w,
+        bottomInset > 0 ? 8.h : 12.h,
+      ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.98),
         borderRadius: BorderRadius.circular(28.r),
-        border: Border.all(color: const Color(0xFFE5E0D4), width: 1.8),
+        border: Border.all(color: const Color(0xFFF0EBF8), width: 1.2),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x33716B5D),
-            blurRadius: 0,
-            offset: Offset(0, 7),
-          ),
-          BoxShadow(
-            color: Color(0x1A000000),
-            blurRadius: 18,
-            offset: Offset(0, 10),
+            color: Color(0x160F172A),
+            blurRadius: 28,
+            offset: Offset(0, 14),
           ),
         ],
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(10.w, 8.h, 10.w, 10.h),
-          child: Row(
-            children: [
-              _NavItem(
-                label: 'HOME',
-                icon: Icons.menu_book_outlined,
-                activeIcon: Icons.menu_book_rounded,
-                active: currentIndex == 0,
-                onTap: () => onChanged(0),
-              ),
-              _NavItem(
-                label: 'CREATE',
-                icon: Icons.auto_awesome_outlined,
-                activeIcon: Icons.auto_awesome_rounded,
-                active: currentIndex == 1,
-                onTap: () => onChanged(1),
-              ),
-              _NavItem(
-                label: 'LIBRARY',
-                icon: Icons.library_books_outlined,
-                activeIcon: Icons.library_books_rounded,
-                active: currentIndex == 2,
-                onTap: () => onChanged(2),
-              ),
-              _NavItem(
-                label: 'VIP',
-                icon: Icons.stars_outlined,
-                activeIcon: Icons.stars_rounded,
-                active: currentIndex == 3,
-                onTap: () => onChanged(3),
-              ),
-            ],
-          ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(10.w, 8.h, 10.w, 10.h),
+        child: Row(
+          children: [
+            _NavItem(
+              label: '首页',
+              icon: Icons.menu_book_outlined,
+              activeIcon: Icons.menu_book_rounded,
+              active: currentIndex == 0,
+              onTap: () => onChanged(0),
+            ),
+            _NavItem(
+              label: '创作',
+              icon: Icons.auto_awesome_outlined,
+              activeIcon: Icons.auto_awesome_rounded,
+              active: currentIndex == 1,
+              onTap: () => onChanged(1),
+            ),
+            _NavItem(
+              label: '书架',
+              icon: Icons.library_books_outlined,
+              activeIcon: Icons.library_books_rounded,
+              active: currentIndex == 2,
+              onTap: () => onChanged(2),
+            ),
+            _NavItem(
+              label: '我的',
+              icon: Icons.stars_outlined,
+              activeIcon: Icons.person_rounded,
+              active: currentIndex == 3,
+              onTap: () => onChanged(3),
+            ),
+          ],
         ),
       ),
     );
@@ -156,26 +154,32 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? Colors.white : AppTheme.purpleLight;
+    final color = active ? Colors.white : const Color(0xFF8792A8);
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(22.r),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 3.w),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            height: active ? 68.h : 54.h,
+            height: active ? 62.h : 50.h,
             decoration: BoxDecoration(
-              color: active ? AppTheme.skyDeep : Colors.transparent,
-              borderRadius: BorderRadius.circular(18.r),
-              border: active ? Border.all(color: Colors.white, width: 3) : null,
+              gradient: active
+                  ? const LinearGradient(
+                      colors: [Color(0xFF7357F6), Color(0xFF5B7CF6)],
+                    )
+                  : null,
+              color: active ? null : Colors.transparent,
+              borderRadius: BorderRadius.circular(17.r),
+              border:
+                  active ? Border.all(color: Colors.white, width: 2.5) : null,
               boxShadow: active
                   ? const [
                       BoxShadow(
-                        color: Color(0x33000000),
-                        blurRadius: 16,
-                        offset: Offset(0, 8),
+                        color: Color(0x257357F6),
+                        blurRadius: 18,
+                        offset: Offset(0, 10),
                       ),
                     ]
                   : null,
@@ -184,8 +188,8 @@ class _NavItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(active ? activeIcon : icon, color: color, size: 25.sp),
-                SizedBox(height: 4.h),
+                Icon(active ? activeIcon : icon, color: color, size: 24.sp),
+                SizedBox(height: 3.h),
                 Text(
                   label,
                   maxLines: 1,
@@ -193,7 +197,6 @@ class _NavItem extends StatelessWidget {
                     fontSize: 10.sp,
                     fontWeight: FontWeight.w900,
                     color: color,
-                    letterSpacing: 0.8,
                   ),
                 ),
               ],

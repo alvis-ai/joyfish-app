@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../common/themes/app_theme.dart';
 import '../../../common/utils/story_presenter.dart';
+import '../../../common/widgets/joyfish_scaffold.dart';
+import '../../../common/widgets/story_cards.dart';
 import '../models/story_models.dart';
 import '../providers/story_providers.dart';
 
@@ -31,7 +33,14 @@ class StoryLibraryPage extends ConsumerWidget {
         padding: EdgeInsets.fromLTRB(28.w, 0, 28.w, 132.h),
         children: [
           SizedBox(height: 14.h),
-          const _LibraryTopBar(),
+          JoyfishPageHeader(
+            title: '故事书架',
+            subtitle: '收藏和回看每一个好故事',
+            trailing: JoyfishIconBubble(
+              icon: Icons.add_rounded,
+              onTap: onCompose,
+            ),
+          ),
           SizedBox(height: 28.h),
           _ProgressCard(used: used, onCreate: onCompose),
           SizedBox(height: 28.h),
@@ -51,14 +60,23 @@ class StoryLibraryPage extends ConsumerWidget {
           if (stories.isEmpty)
             _EmptyLibrary(onCreate: onCompose)
           else
-            ...stories.map(
-              (story) => Padding(
-                padding: EdgeInsets.only(bottom: 28.h),
-                child: _LibraryStoryCard(
+            GridView.builder(
+              itemCount: stories.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 22.w,
+                mainAxisSpacing: 24.h,
+                mainAxisExtent: 268.h,
+              ),
+              itemBuilder: (context, index) {
+                final story = stories[index];
+                return _LibraryStoryCard(
                   story: story,
                   onTap: () => onOpenStory(story.id),
-                ),
-              ),
+                );
+              },
             ),
           if (state.error != null) ...[
             SizedBox(height: 12.h),
@@ -70,41 +88,6 @@ class StoryLibraryPage extends ConsumerWidget {
                   ?.copyWith(color: Colors.red),
             ),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-class _LibraryTopBar extends StatelessWidget {
-  const _LibraryTopBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 92.h,
-      padding: EdgeInsets.symmetric(horizontal: 26.w),
-      decoration: BoxDecoration(
-        color: AppTheme.purpleLight,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30.r)),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(0, 8)),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 34.r,
-            backgroundColor: Colors.white.withValues(alpha: 0.28),
-            child:
-                Icon(Icons.home_rounded, color: AppTheme.skyDeep, size: 30.sp),
-          ),
-          SizedBox(width: 22.w),
-          Expanded(
-            child: Text('Story Paradise',
-                style: Theme.of(context).textTheme.displaySmall),
-          ),
         ],
       ),
     );
@@ -125,12 +108,18 @@ class _ProgressCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(24.w),
         decoration: BoxDecoration(
-          color: AppTheme.peach,
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFFFD45A), Color(0xFFFFBE54)],
+          ),
           borderRadius: BorderRadius.circular(28.r),
-          border: Border.all(color: Colors.white, width: 4),
           boxShadow: const [
             BoxShadow(
-                color: Color(0x33716B5D), blurRadius: 0, offset: Offset(5, 7)),
+              color: Color(0x120F172A),
+              blurRadius: 24,
+              offset: Offset(0, 14),
+            ),
           ],
         ),
         child: Column(
@@ -226,117 +215,12 @@ class _LibraryStoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final visual = storyVisualOf(story);
     final created = story.publishedAt ?? story.createdAt;
-    return GestureDetector(
+    return JoyfishStoryCard(
+      visual: visual,
+      title: story.title,
+      meta: storyDayLabel(created),
+      badge: visual.subtitle,
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(30.r),
-          border: Border.all(color: Colors.white, width: 5),
-          boxShadow: const [
-            BoxShadow(
-                color: Color(0x33716B5D), blurRadius: 0, offset: Offset(5, 8)),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 214.h,
-              width: double.infinity,
-              child: ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-                child: _StoryCover(visual: visual),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(24.w, 22.h, 24.w, 22.h),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(story.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.headlineMedium),
-                        SizedBox(height: 18.h),
-                        Text(storyDayLabel(created),
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(color: AppTheme.mutedInk)),
-                      ],
-                    ),
-                  ),
-                  CircleAvatar(
-                    radius: 27.r,
-                    backgroundColor: AppTheme.skyDeep,
-                    child: Icon(Icons.play_arrow_rounded,
-                        color: Colors.white, size: 30.sp),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StoryCover extends StatelessWidget {
-  const _StoryCover({required this.visual});
-
-  final StoryVisual visual;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            visual.color.withValues(alpha: 0.95),
-            const Color(0xFF12333A)
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Opacity(
-              opacity: 0.16,
-              child: GridPaper(
-                color: Colors.white,
-                divisions: 2,
-                interval: 36.w,
-                subdivisions: 1,
-              ),
-            ),
-          ),
-          Center(child: Text(visual.emoji, style: TextStyle(fontSize: 84.sp))),
-          Positioned(
-            left: 18.w,
-            top: 18.h,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
-              decoration: BoxDecoration(
-                color: AppTheme.skyDeep,
-                borderRadius: BorderRadius.circular(18.r),
-                border: Border.all(color: Colors.white, width: 3),
-              ),
-              child: Text(visual.subtitle,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w900)),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

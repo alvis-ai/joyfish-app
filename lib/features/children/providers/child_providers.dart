@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/api_exception.dart';
 import '../../../core/storage/storage_manager.dart';
 import '../models/child_profile.dart';
 import '../repository/child_repository.dart';
@@ -88,7 +89,7 @@ class ChildController extends StateNotifier<ChildrenState> {
       state = state.copyWith(
         loaded: true,
         isLoading: false,
-        error: error.toString(),
+        error: userFacingErrorMessage(error),
       );
     }
   }
@@ -116,7 +117,10 @@ class ChildController extends StateNotifier<ChildrenState> {
         selectedChildId: child.id,
       );
     } catch (error) {
-      state = state.copyWith(isSubmitting: false, error: error.toString());
+      state = state.copyWith(
+        isSubmitting: false,
+        error: userFacingErrorMessage(error),
+      );
     }
   }
 

@@ -16,11 +16,24 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401) {
+    if (err.response?.statusCode == 401 && _shouldExpireSession(err)) {
       AppLogger.warning('Received 401 response, clearing local session');
       await StorageManager.clearSession();
       AuthSessionBus.emitExpired();
     }
     super.onError(err, handler);
+  }
+
+  bool _shouldExpireSession(DioException err) {
+    final path = err.requestOptions.path;
+    final hasToken =
+        err.requestOptions.headers['Authorization']?.toString().isNotEmpty ??
+            false;
+    if (!hasToken) {
+      return false;
+    }
+    return path != '/auth/login' &&
+        path != '/auth/register' &&
+        path != '/auth/sms-code';
   }
 }

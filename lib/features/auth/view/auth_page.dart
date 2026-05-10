@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_router.dart';
 import '../providers/session_providers.dart';
 
@@ -211,11 +211,15 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       if (!mounted) return false;
       setState(() {
         _loginDebugCode = result.debugCode;
-        if (kDebugMode && result.debugCode != null) {
+        if (result.debugCode != null) {
           _loginCodeController.text = result.debugCode!;
         }
       });
-      _showMessage('验证码已发送到 ${result.phoneNumber}');
+      _showMessage(
+        result.debugCode == null
+            ? '验证码已发送到 ${result.phoneNumber}'
+            : '本地测试验证码 ${result.debugCode}，已自动填入',
+      );
       return true;
     } catch (error) {
       if (mounted) _showMessage(_friendlyError(error));
@@ -235,11 +239,15 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       if (!mounted) return false;
       setState(() {
         _registerDebugCode = result.debugCode;
-        if (kDebugMode && result.debugCode != null) {
+        if (result.debugCode != null) {
           _registerCodeController.text = result.debugCode!;
         }
       });
-      _showMessage('验证码已发送到 ${result.phoneNumber}');
+      _showMessage(
+        result.debugCode == null
+            ? '验证码已发送到 ${result.phoneNumber}'
+            : '本地测试验证码 ${result.debugCode}，已自动填入',
+      );
       return true;
     } catch (error) {
       if (mounted) _showMessage(_friendlyError(error));
@@ -271,11 +279,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   }
 
   String _friendlyError(Object error) {
-    final raw = error.toString().trim();
-    if (raw.startsWith('Exception: ')) {
-      return raw.substring('Exception: '.length);
-    }
-    return raw;
+    return userFacingErrorMessage(error);
   }
 }
 
@@ -358,7 +362,7 @@ class _RegisterView extends StatelessWidget {
               obscureText: true,
               onChanged: onChanged,
             ),
-            if (kDebugMode && debugCode != null) ...[
+            if (debugCode != null) ...[
               SizedBox(height: 8.h),
               _DebugCodeBadge(code: debugCode!),
             ],
@@ -473,7 +477,7 @@ class _LoginView extends StatelessWidget {
                 obscureText: true,
                 onChanged: onChanged,
               ),
-            if (isSms && kDebugMode && debugCode != null) ...[
+            if (isSms && debugCode != null) ...[
               SizedBox(height: 8.h),
               _DebugCodeBadge(code: debugCode!),
             ],

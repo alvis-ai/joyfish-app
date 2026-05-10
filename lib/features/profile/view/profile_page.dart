@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../common/themes/app_theme.dart';
 import '../../../common/widgets/app_button.dart';
+import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../core/router/app_router.dart';
 import '../../auth/providers/session_providers.dart';
 import '../../children/providers/child_providers.dart';
@@ -30,7 +31,14 @@ class ProfilePage extends ConsumerWidget {
     return ListView(
       padding: EdgeInsets.fromLTRB(22.w, 10.h, 22.w, 140.h),
       children: [
-        const _VipTopBar(),
+        JoyfishPageHeader(
+          title: '会员中心',
+          subtitle: '管理故事额度、孩子档案和会员权益',
+          trailing: JoyfishIconBubble(
+            icon: Icons.stars_rounded,
+            onTap: () {},
+          ),
+        ),
         SizedBox(height: 26.h),
         _StatusCard(phone: phone, storyCount: storyState.items.length),
         SizedBox(height: 22.h),
@@ -104,7 +112,7 @@ class ProfilePage extends ConsumerWidget {
           text: '退出登录',
           backgroundColor: Colors.white,
           textColor: const Color(0xFFD23A3A),
-          borderSide: const BorderSide(color: Color(0xFFD8D0BD), width: 2),
+          borderSide: const BorderSide(color: Color(0xFFF0EBF8), width: 1.4),
           icon: const Icon(Icons.logout_rounded, color: Color(0xFFD23A3A)),
           onPressed: () async {
             await ref.read(sessionControllerProvider.notifier).logout();
@@ -118,53 +126,6 @@ class ProfilePage extends ConsumerWidget {
   }
 }
 
-class _VipTopBar extends StatelessWidget {
-  const _VipTopBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 58.h,
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      decoration: BoxDecoration(
-        color: AppTheme.purpleLight,
-        borderRadius: BorderRadius.circular(20.r),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(0, 6)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.home_rounded, color: Colors.white, size: 24.sp),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Text(
-              'Story Paradise',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w900),
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white, width: 1.5),
-              borderRadius: BorderRadius.circular(99.r),
-            ),
-            child: Text('VIP 中心',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w800)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _StatusCard extends StatelessWidget {
   const _StatusCard({required this.phone, required this.storyCount});
 
@@ -173,17 +134,9 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return JoyfishCard(
       padding: EdgeInsets.all(24.w),
-      decoration: BoxDecoration(
-        color: const Color(0xFFDDEEFF),
-        borderRadius: BorderRadius.circular(28.r),
-        border: Border.all(color: Colors.white, width: 4),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(5, 7)),
-        ],
-      ),
+      backgroundColor: const Color(0xFFEAF2FF),
       child: Column(
         children: [
           SizedBox(
@@ -213,7 +166,7 @@ class _StatusCard extends StatelessWidget {
           ),
           SizedBox(height: 20.h),
           Icon(Icons.emoji_events_rounded,
-              color: Colors.white.withValues(alpha: 0.55), size: 58.sp),
+              color: const Color(0xFFB7C6EE), size: 58.sp),
         ],
       ),
     );
@@ -242,16 +195,9 @@ class _BenefitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return JoyfishCard(
       padding: EdgeInsets.all(22.w),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(22.r),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(4, 6)),
-        ],
-      ),
+      backgroundColor: color,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -314,17 +260,12 @@ class _PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return JoyfishCard(
       padding: EdgeInsets.all(24.w),
-      decoration: BoxDecoration(
-        color: highlighted ? AppTheme.peach : Colors.white,
-        borderRadius: BorderRadius.circular(28.r),
-        border:
-            highlighted ? Border.all(color: AppTheme.olive, width: 2.4) : null,
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(4, 7)),
-        ],
+      backgroundColor: highlighted ? const Color(0xFFFFE087) : Colors.white,
+      border: Border.all(
+        color: highlighted ? const Color(0xFFFFD45A) : const Color(0xFFF0EBF8),
+        width: 1.4,
       ),
       child: Column(
         children: [
@@ -377,13 +318,8 @@ class _MiniAction extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: JoyfishCard(
         padding: EdgeInsets.symmetric(vertical: 16.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22.r),
-          border: Border.all(color: const Color(0xFFD8D0BD), width: 2),
-        ),
         child: Column(
           children: [
             Icon(icon, color: AppTheme.skyDeep),

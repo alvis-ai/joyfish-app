@@ -7,6 +7,7 @@ class StoryRepository {
     String? titleHint,
     String? scenario,
     String? timeOfDay,
+    Map<String, dynamic>? characters,
     List<String>? themeTags,
     String language = 'zh',
     String? voiceRole,
@@ -16,10 +17,15 @@ class StoryRepository {
         '/stories/requests',
         data: {
           'child_id': childId,
-          if (titleHint != null && titleHint.isNotEmpty) 'title_hint': titleHint,
+          if (titleHint != null && titleHint.isNotEmpty)
+            'title_hint': titleHint,
           if (scenario != null && scenario.isNotEmpty) 'scenario': scenario,
-          if (timeOfDay != null && timeOfDay.isNotEmpty) 'time_of_day': timeOfDay,
-          if (themeTags != null && themeTags.isNotEmpty) 'theme_tags': themeTags,
+          if (timeOfDay != null && timeOfDay.isNotEmpty)
+            'time_of_day': timeOfDay,
+          if (characters != null && characters.isNotEmpty)
+            'characters': characters,
+          if (themeTags != null && themeTags.isNotEmpty)
+            'theme_tags': themeTags,
           'language': language,
           if (voiceRole != null && voiceRole.isNotEmpty)
             'options_json': {
@@ -27,14 +33,16 @@ class StoryRepository {
             },
         },
       ),
-      (data) => StoryRequestRecord.fromJson(Map<String, dynamic>.from(data as Map)),
+      (data) =>
+          StoryRequestRecord.fromJson(Map<String, dynamic>.from(data as Map)),
     );
   }
 
   Future<StoryRequestRecord> getStoryRequest(int requestId) {
     return NetworkManager.requestEnvelope(
       () => NetworkManager.get('/stories/requests/$requestId'),
-      (data) => StoryRequestRecord.fromJson(Map<String, dynamic>.from(data as Map)),
+      (data) =>
+          StoryRequestRecord.fromJson(Map<String, dynamic>.from(data as Map)),
     );
   }
 
@@ -48,7 +56,8 @@ class StoryRepository {
         final map = Map<String, dynamic>.from(data as Map);
         final items = (map['items'] as List<dynamic>? ?? <dynamic>[]);
         return items
-            .map((item) => StoryRequestRecord.fromJson(Map<String, dynamic>.from(item as Map)))
+            .map((item) => StoryRequestRecord.fromJson(
+                Map<String, dynamic>.from(item as Map)))
             .toList();
       },
     );
@@ -61,7 +70,8 @@ class StoryRepository {
         final map = Map<String, dynamic>.from(data as Map);
         final items = (map['items'] as List<dynamic>? ?? <dynamic>[]);
         return items
-            .map((item) => StoryRecord.fromJson(Map<String, dynamic>.from(item as Map)))
+            .map((item) =>
+                StoryRecord.fromJson(Map<String, dynamic>.from(item as Map)))
             .toList();
       },
     );

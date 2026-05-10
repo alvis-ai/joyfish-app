@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/api_exception.dart';
 import '../models/story_models.dart';
 import '../repository/story_repository.dart';
 
@@ -53,7 +54,11 @@ class StoryLibraryController extends StateNotifier<StoryLibraryState> {
       final items = await _repository.listStories();
       state = state.copyWith(loaded: true, isLoading: false, items: items);
     } catch (error) {
-      state = state.copyWith(loaded: true, isLoading: false, error: error.toString());
+      state = state.copyWith(
+        loaded: true,
+        isLoading: false,
+        error: userFacingErrorMessage(error),
+      );
     }
   }
 }

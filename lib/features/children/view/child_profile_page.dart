@@ -144,8 +144,9 @@ class _ChildProfilePageState extends ConsumerState<ChildProfilePage> {
                     initialValue: _gender,
                     decoration: const InputDecoration(hintText: '选择性别'),
                     items: const [
-                      DropdownMenuItem(value: 'boy', child: Text('男孩')),
-                      DropdownMenuItem(value: 'girl', child: Text('女孩')),
+                      DropdownMenuItem(value: 'male', child: Text('男孩')),
+                      DropdownMenuItem(value: 'female', child: Text('女孩')),
+                      DropdownMenuItem(value: 'other', child: Text('暂不选择')),
                     ],
                     onChanged: (value) => setState(() => _gender = value),
                   ),
@@ -230,7 +231,9 @@ class _ChildCard extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  child.gender == 'girl' ? '👧' : '🧒',
+                  child.gender == 'female' || child.gender == 'girl'
+                      ? '👧'
+                      : '🧒',
                   style: TextStyle(fontSize: 34.sp),
                 ),
               ),

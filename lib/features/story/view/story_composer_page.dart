@@ -6,13 +6,29 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../common/themes/app_theme.dart';
 import '../../../common/widgets/app_button.dart';
 import '../../../common/widgets/joyfish_scaffold.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_router.dart';
+import '../../auth/providers/session_providers.dart';
 import '../../children/providers/child_providers.dart';
 import '../../voice/providers/voice_providers.dart';
 import '../providers/story_providers.dart';
 
-class _StoryThemePreset {
-  const _StoryThemePreset({
+class _StoryCharacterPreset {
+  const _StoryCharacterPreset({
+    required this.label,
+    required this.emoji,
+    required this.description,
+    required this.color,
+  });
+
+  final String label;
+  final String emoji;
+  final String description;
+  final Color color;
+}
+
+class _StoryScenePreset {
+  const _StoryScenePreset({
     required this.label,
     required this.emoji,
     required this.color,
@@ -25,37 +41,111 @@ class _StoryThemePreset {
   final String scenario;
 }
 
-const _presets = [
-  _StoryThemePreset(
-      label: '勇敢冒险',
-      emoji: '🗺️',
-      color: Color(0xFFFF7B53),
-      scenario: '踏上一段勇敢冒险的旅程'),
-  _StoryThemePreset(
-      label: '友谊互助',
-      emoji: '🤝',
-      color: Color(0xFFF76AA7),
-      scenario: '朋友之间一起互相帮助'),
-  _StoryThemePreset(
+class _StoryTopicPreset {
+  const _StoryTopicPreset({
+    required this.label,
+    required this.emoji,
+    required this.instruction,
+  });
+
+  final String label;
+  final String emoji;
+  final String instruction;
+}
+
+const _characters = [
+  _StoryCharacterPreset(
+    label: '小兔子',
+    emoji: '🐰',
+    description: '好奇、温柔，喜欢发现小秘密',
+    color: Color(0xFFFFD84D),
+  ),
+  _StoryCharacterPreset(
+    label: '小海豚',
+    emoji: '🐬',
+    description: '活泼、聪明，擅长帮助朋友',
+    color: Color(0xFF48C8E8),
+  ),
+  _StoryCharacterPreset(
+    label: '小宇航员',
+    emoji: '🚀',
+    description: '勇敢、爱探索，想去星星上旅行',
+    color: Color(0xFF8F7AF8),
+  ),
+  _StoryCharacterPreset(
+    label: '小狐狸',
+    emoji: '🦊',
+    description: '机灵、善良，喜欢解开谜题',
+    color: Color(0xFFFF9A4D),
+  ),
+  _StoryCharacterPreset(
+    label: '小猫咪',
+    emoji: '🐱',
+    description: '软萌、胆小但愿意尝试',
+    color: Color(0xFFFF7EA8),
+  ),
+  _StoryCharacterPreset(
+    label: '小机器人',
+    emoji: '🤖',
+    description: '认真、有礼貌，正在学习情绪',
+    color: Color(0xFF73D879),
+  ),
+];
+
+const _scenes = [
+  _StoryScenePreset(
       label: '海底世界',
       emoji: '🌊',
       color: Color(0xFF1CBCE1),
       scenario: '探索神秘又温柔的海底世界'),
-  _StoryThemePreset(
+  _StoryScenePreset(
       label: '太空探索',
       emoji: '🚀',
       color: Color(0xFFA075F5),
       scenario: '去太空寻找发光的小秘密'),
-  _StoryThemePreset(
+  _StoryScenePreset(
       label: '魔法森林',
       emoji: '🌳',
       color: Color(0xFF17D67C),
       scenario: '在森林里遇见会说话的树和精灵'),
-  _StoryThemePreset(
-      label: '可爱动物',
-      emoji: '🐰',
+  _StoryScenePreset(
+      label: '云朵城堡',
+      emoji: '☁️',
       color: Color(0xFFF9BF17),
-      scenario: '和可爱动物们做朋友'),
+      scenario: '走进软软的云朵城堡寻找彩虹门'),
+];
+
+const _topics = [
+  _StoryTopicPreset(
+    label: '勇敢冒险',
+    emoji: '🗺️',
+    instruction: '让主角学会勇敢尝试，同时保持安全感',
+  ),
+  _StoryTopicPreset(
+    label: '友谊互助',
+    emoji: '🤝',
+    instruction: '讲述朋友之间理解、合作和互相帮助',
+  ),
+  _StoryTopicPreset(
+    label: '睡前安抚',
+    emoji: '🌙',
+    instruction: '语气温柔放松，适合睡前慢慢听',
+  ),
+  _StoryTopicPreset(
+    label: '好奇探索',
+    emoji: '🔍',
+    instruction: '鼓励观察、提问和发现世界的奥秘',
+  ),
+  _StoryTopicPreset(
+    label: '情绪成长',
+    emoji: '💛',
+    instruction: '帮助主角认识情绪，并学会表达和调整',
+  ),
+  _StoryTopicPreset(
+    label: '习惯养成',
+    emoji: '⭐',
+    instruction: '把收拾、刷牙、分享等习惯自然融入故事',
+  ),
 ];
 
 @RoutePage()
@@ -73,7 +163,10 @@ class StoryComposerPage extends ConsumerStatefulWidget {
 
 class _StoryComposerPageState extends ConsumerState<StoryComposerPage> {
   final _customStoryController = TextEditingController();
-  String? _selectedTheme;
+  String _selectedCharacter = _characters.first.label;
+  String _selectedScene = _scenes.first.label;
+  String _selectedTheme = _topics.first.label;
+  int _characterCount = 1;
   bool _submitting = false;
 
   @override
@@ -101,19 +194,28 @@ class _StoryComposerPageState extends ConsumerState<StoryComposerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final canUseCustomPrompt =
+        ref.watch(sessionControllerProvider).user?.canUseCustomStoryPrompt ??
+            false;
     final child = _ComposerBody(
+      selectedCharacter: _selectedCharacter,
+      selectedScene: _selectedScene,
       selectedTheme: _selectedTheme,
+      characterCount: _characterCount,
+      canUseCustomPrompt: canUseCustomPrompt,
       customStoryController: _customStoryController,
       submitting: _submitting,
+      onCharacterSelected: (character) {
+        setState(() => _selectedCharacter = character);
+      },
+      onSceneSelected: (scene) {
+        setState(() => _selectedScene = scene);
+      },
       onThemeSelected: (theme) {
-        setState(() {
-          _selectedTheme = theme;
-          if (_customStoryController.text.trim().isEmpty) {
-            final preset = _presets.firstWhere((item) => item.label == theme);
-            _customStoryController.text =
-                '请写一个关于${preset.label}的睡前故事，${preset.scenario}。';
-          }
-        });
+        setState(() => _selectedTheme = theme);
+      },
+      onCharacterCountChanged: (count) {
+        setState(() => _characterCount = count);
       },
       onSubmit: _canSubmit() ? _submit : null,
     );
@@ -126,8 +228,9 @@ class _StoryComposerPageState extends ConsumerState<StoryComposerPage> {
   }
 
   bool _canSubmit() {
-    return _selectedTheme != null ||
-        _customStoryController.text.trim().isNotEmpty;
+    return _selectedCharacter.isNotEmpty &&
+        _selectedScene.isNotEmpty &&
+        _selectedTheme.isNotEmpty;
   }
 
   Future<void> _submit() async {
@@ -144,29 +247,56 @@ class _StoryComposerPageState extends ConsumerState<StoryComposerPage> {
 
     setState(() => _submitting = true);
     try {
-      final preset = _selectedTheme == null
-          ? null
-          : _presets.firstWhere((item) => item.label == _selectedTheme);
+      final character =
+          _characters.firstWhere((item) => item.label == _selectedCharacter);
+      final scene = _scenes.firstWhere((item) => item.label == _selectedScene);
+      final topic = _topics.firstWhere((item) => item.label == _selectedTheme);
+      final canUseCustomPrompt =
+          ref.read(sessionControllerProvider).user?.canUseCustomStoryPrompt ??
+              false;
+      final customPrompt =
+          canUseCustomPrompt ? _customStoryController.text.trim() : '';
       final voices = ref.read(voiceControllerProvider).items;
-      final request = await ref
-          .read(storyRepositoryProvider)
-          .createStoryRequest(
-            childId: selectedChild.id,
-            titleHint: _selectedTheme ?? '定制睡前故事',
-            scenario: preset?.scenario ?? _customStoryController.text.trim(),
-            timeOfDay: '睡前',
-            themeTags: [
-              if (_selectedTheme != null) _selectedTheme!,
-              if (_customStoryController.text.trim().isNotEmpty) '自定义故事',
-            ],
-            voiceRole: voices.isEmpty ? null : voices.first.role,
-          );
+      final request =
+          await ref.read(storyRepositoryProvider).createStoryRequest(
+                childId: selectedChild.id,
+                titleHint: '${topic.label}故事',
+                scenario: [
+                  '主角是$_characterCount个${character.label}，${character.description}。',
+                  scene.scenario,
+                  topic.instruction,
+                  if (customPrompt.isNotEmpty) customPrompt,
+                ].join(' '),
+                timeOfDay: '睡前',
+                characters: {
+                  'count': _characterCount,
+                  'items': [
+                    {
+                      'name': character.label,
+                      'description': character.description,
+                    }
+                  ],
+                },
+                themeTags: [
+                  character.label,
+                  scene.label,
+                  topic.label,
+                  if (customPrompt.isNotEmpty) '自定义故事',
+                ],
+                voiceRole: voices.isEmpty ? null : voices.first.role,
+              );
       if (!mounted) return;
-      context.router.push(StoryGeneratingRoute(requestId: request.id));
+      await context.router.push(StoryGeneratingRoute(requestId: request.id));
+      await ref
+          .read(storyLibraryControllerProvider.notifier)
+          .loadStories(force: true);
+      if (mounted) {
+        setState(() {});
+      }
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
+        SnackBar(content: Text(userFacingErrorMessage(error))),
       );
     } finally {
       if (mounted) {
@@ -178,17 +308,31 @@ class _StoryComposerPageState extends ConsumerState<StoryComposerPage> {
 
 class _ComposerBody extends ConsumerWidget {
   const _ComposerBody({
+    required this.selectedCharacter,
+    required this.selectedScene,
     required this.selectedTheme,
+    required this.characterCount,
+    required this.canUseCustomPrompt,
     required this.customStoryController,
     required this.submitting,
+    required this.onCharacterSelected,
+    required this.onSceneSelected,
     required this.onThemeSelected,
+    required this.onCharacterCountChanged,
     required this.onSubmit,
   });
 
-  final String? selectedTheme;
+  final String selectedCharacter;
+  final String selectedScene;
+  final String selectedTheme;
+  final int characterCount;
+  final bool canUseCustomPrompt;
   final TextEditingController customStoryController;
   final bool submitting;
+  final ValueChanged<String> onCharacterSelected;
+  final ValueChanged<String> onSceneSelected;
   final ValueChanged<String> onThemeSelected;
+  final ValueChanged<int> onCharacterCountChanged;
   final VoidCallback? onSubmit;
 
   @override
@@ -198,36 +342,39 @@ class _ComposerBody extends ConsumerWidget {
     return ListView(
       padding: EdgeInsets.fromLTRB(22.w, 12.h, 22.w, 140.h),
       children: [
-        const _ComposerTopBar(),
+        JoyfishPageHeader(
+          title: '创作故事',
+          subtitle: '挑选角色和主题，开始新的奇幻冒险',
+          trailing: JoyfishIconBubble(
+            icon: Icons.auto_awesome_rounded,
+            onTap: () {},
+          ),
+        ),
         SizedBox(height: 28.h),
         const _StepDots(),
         SizedBox(height: 28.h),
         _BlockTitle(icon: Icons.pets_rounded, title: '选择你的主角'),
         SizedBox(height: 14.h),
-        _HeroChoice(
-          title: selectedChild == null ? '小兔子' : selectedChild.nickname,
-          icon: Icons.cruelty_free_rounded,
-          selected: true,
-          onTap: () {},
+        _CharacterGrid(
+          selectedCharacter: selectedCharacter,
+          onSelected: onCharacterSelected,
         ),
-        SizedBox(height: 14.h),
-        _HeroChoice(
-          title: '大狮子',
-          icon: Icons.local_florist_rounded,
-          selected: false,
-          onTap: () {},
+        SizedBox(height: 18.h),
+        _CharacterCountSelector(
+          value: characterCount,
+          onChanged: onCharacterCountChanged,
         ),
         SizedBox(height: 28.h),
         _BlockTitle(icon: Icons.landscape_rounded, title: '选择故事场景'),
         SizedBox(height: 14.h),
-        ..._presets.take(3).map((item) {
-          final selected = item.label == selectedTheme;
+        ..._scenes.map((item) {
+          final selected = item.label == selectedScene;
           return Padding(
             padding: EdgeInsets.only(bottom: 14.h),
             child: _SceneTile(
               preset: item,
               selected: selected,
-              onTap: () => onThemeSelected(item.label),
+              onTap: () => onSceneSelected(item.label),
             ),
           );
         }),
@@ -237,57 +384,56 @@ class _ComposerBody extends ConsumerWidget {
         Wrap(
           spacing: 12.w,
           runSpacing: 12.h,
-          children: _presets.map((item) {
+          children: _topics.map((item) {
             final selected = item.label == selectedTheme;
             return _ThemeChip(
+              emoji: item.emoji,
               label: item.label,
               selected: selected,
               onTap: () => onThemeSelected(item.label),
             );
           }).toList(),
         ),
-        SizedBox(height: 22.h),
-        Container(
-          padding: EdgeInsets.all(16.w),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3FFE8),
-            borderRadius: BorderRadius.circular(26.r),
+        if (canUseCustomPrompt) ...[
+          SizedBox(height: 22.h),
+          JoyfishCard(
+            padding: EdgeInsets.all(16.w),
+            backgroundColor: const Color(0xFFF3FFE8),
             border: Border.all(
-              color: const Color(0xFF2F7D00),
-              width: 2,
-              strokeAlign: BorderSide.strokeAlignInside,
+              color: const Color(0xFF9AD96C),
+              width: 1.4,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.stars_rounded, color: Color(0xFF2F7D00)),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        '写下你的奇思妙想',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: const Color(0xFF2F7D00),
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12.h),
+                TextField(
+                  controller: customStoryController,
+                  minLines: 4,
+                  maxLines: 5,
+                  decoration: const InputDecoration(
+                    hintText: '例如：我想听一个关于会飞的小猫去月球吃蛋糕的故事...',
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.stars_rounded, color: Color(0xFF2F7D00)),
-                  SizedBox(width: 8.w),
-                  Expanded(
-                    child: Text(
-                      'VIP Feature: 写下你的奇思妙想',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: const Color(0xFF2F7D00),
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12.h),
-              TextField(
-                controller: customStoryController,
-                minLines: 4,
-                maxLines: 5,
-                decoration: const InputDecoration(
-                  hintText: '例如：我想听一个关于会飞的小猫去月球吃蛋糕的故事...',
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
         SizedBox(height: 28.h),
         AppButton(
           text: '生成我的故事',
@@ -308,43 +454,6 @@ class _ComposerBody extends ConsumerWidget {
           ),
         ],
       ],
-    );
-  }
-}
-
-class _ComposerTopBar extends StatelessWidget {
-  const _ComposerTopBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 58.h,
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      decoration: BoxDecoration(
-        color: AppTheme.purpleLight,
-        borderRadius: BorderRadius.circular(22.r),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(0, 6)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.home_rounded, color: Colors.white, size: 25.sp),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Text(
-              'Story Paradise',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 17.sp,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          Icon(Icons.account_circle_outlined, color: AppTheme.ink, size: 24.sp),
-        ],
-      ),
     );
   }
 }
@@ -384,7 +493,10 @@ class _StepBadge extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: const [
           BoxShadow(
-              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(2, 3)),
+            color: Color(0x120F172A),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Text(
@@ -433,49 +545,177 @@ class _BlockTitle extends StatelessWidget {
   }
 }
 
-class _HeroChoice extends StatelessWidget {
-  const _HeroChoice({
-    required this.title,
-    required this.icon,
+class _CharacterGrid extends StatelessWidget {
+  const _CharacterGrid({
+    required this.selectedCharacter,
+    required this.onSelected,
+  });
+
+  final String selectedCharacter;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _characters.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12.h,
+        crossAxisSpacing: 12.w,
+        mainAxisExtent: 126.h,
+      ),
+      itemBuilder: (context, index) {
+        final character = _characters[index];
+        final selected = character.label == selectedCharacter;
+        return _CharacterChoice(
+          character: character,
+          selected: selected,
+          onTap: () => onSelected(character.label),
+        );
+      },
+    );
+  }
+}
+
+class _CharacterChoice extends StatelessWidget {
+  const _CharacterChoice({
+    required this.character,
     required this.selected,
     required this.onTap,
   });
 
-  final String title;
-  final IconData icon;
+  final _StoryCharacterPreset character;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 126.h,
-        decoration: BoxDecoration(
-          color: selected ? AppTheme.peach : Colors.white,
-          borderRadius: BorderRadius.circular(28.r),
-          border: Border.all(
-              color: selected ? AppTheme.ink : const Color(0xFFD8D0BD),
-              width: 2.4),
-          boxShadow: const [
-            BoxShadow(
-                color: Color(0x33716B5D), blurRadius: 0, offset: Offset(4, 6)),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 30.r,
-              backgroundColor: selected
-                  ? Colors.white.withValues(alpha: 0.45)
-                  : AppTheme.leaf,
-              child: Icon(icon, color: AppTheme.olive, size: 30.sp),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24.r),
+        child: Ink(
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: selected ? character.color : Colors.white,
+            borderRadius: BorderRadius.circular(24.r),
+            border: Border.all(
+              color: selected ? Colors.white : const Color(0xFFF0EBF8),
+              width: selected ? 2.4 : 1.4,
             ),
-            SizedBox(height: 10.h),
-            Text(title, style: Theme.of(context).textTheme.bodyMedium),
-          ],
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x120F172A),
+                blurRadius: 18,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(character.emoji, style: TextStyle(fontSize: 30.sp)),
+              SizedBox(height: 8.h),
+              Text(
+                character.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: selected ? Colors.white : AppTheme.ink,
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                character.description,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: selected
+                          ? Colors.white.withValues(alpha: 0.88)
+                          : AppTheme.mutedInk,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CharacterCountSelector extends StatelessWidget {
+  const _CharacterCountSelector({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return JoyfishCard(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      child: Row(
+        children: [
+          Icon(Icons.group_rounded, color: AppTheme.olive, size: 22.sp),
+          SizedBox(width: 10.w),
+          Text('角色数量', style: Theme.of(context).textTheme.bodyLarge),
+          const Spacer(),
+          ...[1, 2, 3].map(
+            (count) => Padding(
+              padding: EdgeInsets.only(left: 8.w),
+              child: _CountPill(
+                label: '$count',
+                selected: count == value,
+                onTap: () => onChanged(count),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CountPill extends StatelessWidget {
+  const _CountPill({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18.r),
+      child: Container(
+        width: 42.w,
+        height: 34.h,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.peach : const Color(0xFFF7F4FB),
+          borderRadius: BorderRadius.circular(18.r),
+          border: Border.all(
+            color: selected ? AppTheme.ink : const Color(0xFFE9E3F2),
+            width: selected ? 1.8 : 1.2,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? AppTheme.ink : AppTheme.mutedInk,
+            fontWeight: FontWeight.w900,
+          ),
         ),
       ),
     );
@@ -489,7 +729,7 @@ class _SceneTile extends StatelessWidget {
     required this.onTap,
   });
 
-  final _StoryThemePreset preset;
+  final _StoryScenePreset preset;
   final bool selected;
   final VoidCallback onTap;
 
@@ -503,18 +743,23 @@ class _SceneTile extends StatelessWidget {
           gradient: LinearGradient(
             colors: [
               preset.color.withValues(alpha: 0.95),
-              preset.color.withValues(alpha: 0.58)
+              preset.color.withValues(alpha: 0.62)
             ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(26.r),
           border: Border.all(
-              color: selected ? AppTheme.ink : Colors.white,
-              width: selected ? 2.6 : 3),
+            color:
+                selected ? Colors.white : Colors.white.withValues(alpha: 0.7),
+            width: selected ? 2.6 : 1.2,
+          ),
           boxShadow: const [
             BoxShadow(
-                color: Color(0x33716B5D), blurRadius: 0, offset: Offset(4, 6)),
+              color: Color(0x120F172A),
+              blurRadius: 18,
+              offset: Offset(0, 10),
+            ),
           ],
         ),
         child: Row(
@@ -546,11 +791,13 @@ class _SceneTile extends StatelessWidget {
 
 class _ThemeChip extends StatelessWidget {
   const _ThemeChip({
+    required this.emoji,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
+  final String emoji;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -562,18 +809,34 @@ class _ThemeChip extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
         decoration: BoxDecoration(
-          color: selected ? AppTheme.peach : Colors.white,
+          color: selected ? const Color(0xFFFFE18D) : Colors.white,
           borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
-              color: selected ? AppTheme.ink : AppTheme.peach, width: 2),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? AppTheme.ink : AppTheme.olive,
-            fontWeight: FontWeight.w900,
-            fontSize: 13.sp,
+            color: selected ? const Color(0xFFFFD45A) : const Color(0xFFF0EBF8),
+            width: 1.4,
           ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0D0F172A),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(emoji, style: TextStyle(fontSize: 14.sp)),
+            SizedBox(width: 6.w),
+            Text(
+              label,
+              style: TextStyle(
+                color: selected ? AppTheme.ink : AppTheme.olive,
+                fontWeight: FontWeight.w900,
+                fontSize: 13.sp,
+              ),
+            ),
+          ],
         ),
       ),
     );

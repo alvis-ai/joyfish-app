@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/api_exception.dart';
 import '../../../core/storage/storage_manager.dart';
 import '../models/auth_models.dart';
 import '../repository/auth_repository.dart';
@@ -77,7 +78,7 @@ class SessionController extends StateNotifier<SessionState> {
         initialized: true,
         bootstrapping: false,
         user: null,
-        error: error.toString(),
+        error: userFacingErrorMessage(error),
       );
     }
   }
@@ -94,7 +95,10 @@ class SessionController extends StateNotifier<SessionState> {
       );
       await _persistSession(session);
     } catch (error) {
-      state = state.copyWith(submitting: false, error: error.toString());
+      state = state.copyWith(
+        submitting: false,
+        error: userFacingErrorMessage(error),
+      );
     }
   }
 
@@ -110,7 +114,10 @@ class SessionController extends StateNotifier<SessionState> {
       );
       await _persistSession(session);
     } catch (error) {
-      state = state.copyWith(submitting: false, error: error.toString());
+      state = state.copyWith(
+        submitting: false,
+        error: userFacingErrorMessage(error),
+      );
     }
   }
 
@@ -132,7 +139,10 @@ class SessionController extends StateNotifier<SessionState> {
       );
       await _persistSession(session);
     } catch (error) {
-      state = state.copyWith(submitting: false, error: error.toString());
+      state = state.copyWith(
+        submitting: false,
+        error: userFacingErrorMessage(error),
+      );
     }
   }
 
