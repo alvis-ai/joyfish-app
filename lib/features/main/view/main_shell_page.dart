@@ -41,6 +41,7 @@ class _MainShellPageState extends ConsumerState<MainShellPage> {
         onManageChildren: () => context.router.push(const ChildProfileRoute()),
         onManageVoice: () => context.router.push(const VoiceStudioRoute()),
         onCreateStory: () => setState(() => _currentIndex = 1),
+        onOpenLibrary: () => setState(() => _currentIndex = 2),
         onOpenStory: (storyId) =>
             context.router.push(StoryDetailRoute(storyId: storyId)),
       ),

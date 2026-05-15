@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
+  static const String _defaultApiBaseUrl = 'https://joyfishstory.cn';
+
   static late AppConfig _instance;
   static AppConfig get instance => _instance;
 
@@ -39,11 +41,7 @@ class AppConfig {
       return _normalizeBaseUrl(defined.trim());
     }
 
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:8000';
-    }
-
-    return 'http://127.0.0.1:8000';
+    return _defaultApiBaseUrl;
   }
 
   static String _normalizeBaseUrl(String value) {

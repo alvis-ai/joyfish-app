@@ -18,12 +18,14 @@ class HomePage extends ConsumerWidget {
     required this.onManageChildren,
     required this.onManageVoice,
     required this.onCreateStory,
+    required this.onOpenLibrary,
     required this.onOpenStory,
   });
 
   final VoidCallback onManageChildren;
   final VoidCallback onManageVoice;
   final VoidCallback onCreateStory;
+  final VoidCallback onOpenLibrary;
   final ValueChanged<int> onOpenStory;
 
   @override
@@ -31,8 +33,7 @@ class HomePage extends ConsumerWidget {
     final childrenState = ref.watch(childControllerProvider);
     final voiceState = ref.watch(voiceControllerProvider);
     final stories = ref.watch(storyLibraryControllerProvider).items;
-    final shelfItems =
-        stories.isEmpty ? _demoStories : stories.take(4).toList();
+    final shelfStories = stories.take(4).toList();
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -62,7 +63,7 @@ class HomePage extends ConsumerWidget {
           _SectionTitle(
             title: '精选故事',
             action: '查看全部',
-            onAction: stories.isEmpty ? null : () {},
+            onAction: stories.isEmpty ? null : onOpenLibrary,
           ),
           SizedBox(height: 14.h),
           _FeaturedStoryCard(
@@ -74,26 +75,27 @@ class HomePage extends ConsumerWidget {
           SizedBox(height: 30.h),
           const _PlainTitle('我的书架'),
           SizedBox(height: 14.h),
-          GridView.builder(
-            itemCount: shelfItems.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 22.w,
-              mainAxisSpacing: 24.h,
-              mainAxisExtent: 268.h,
+          if (shelfStories.isEmpty)
+            _EmptyShelfCard(onCreateStory: onCreateStory)
+          else
+            GridView.builder(
+              itemCount: shelfStories.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 22.w,
+                mainAxisSpacing: 24.h,
+                mainAxisExtent: 268.h,
+              ),
+              itemBuilder: (context, index) {
+                final story = shelfStories[index];
+                return _ShelfCard(
+                  story: story,
+                  onTap: () => onOpenStory(story.id),
+                );
+              },
             ),
-            itemBuilder: (context, index) {
-              final item = shelfItems[index];
-              return _ShelfCard(
-                item: item,
-                onTap: item is StoryRecord
-                    ? () => onOpenStory(item.id)
-                    : onCreateStory,
-              );
-            },
-          ),
           SizedBox(height: 28.h),
           _VipBanner(onTap: onCreateStory),
           SizedBox(height: 16.h),
@@ -186,29 +188,88 @@ class _FeaturedStoryCard extends StatelessWidget {
 }
 
 class _ShelfCard extends StatelessWidget {
-  const _ShelfCard({required this.item, required this.onTap});
+  const _ShelfCard({required this.story, required this.onTap});
 
-  final Object item;
+  final StoryRecord story;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final title = item is StoryRecord
-        ? (item as StoryRecord).title
-        : (item as _DemoStory).title;
-    final meta = item is StoryRecord
-        ? '${(item as StoryRecord).readingMinutes ?? 8} 页 · 故事'
-        : (item as _DemoStory).meta;
-    final visual = item is StoryRecord
-        ? storyVisualOf(item as StoryRecord)
-        : (item as _DemoStory).visual;
+    final visual = storyVisualOf(story);
 
     return JoyfishStoryCard(
       visual: visual,
-      title: title,
-      meta: meta,
+      title: story.title,
+      meta: '${story.readingMinutes ?? 8} 页 · 故事',
       badge: visual.subtitle,
       onTap: onTap,
+    );
+  }
+}
+
+class _EmptyShelfCard extends StatelessWidget {
+  const _EmptyShelfCard({required this.onCreateStory});
+
+  final VoidCallback onCreateStory;
+
+  @override
+  Widget build(BuildContext context) {
+    return JoyfishCard(
+      padding: EdgeInsets.all(22.w),
+      radius: 28.r,
+      child: Row(
+        children: [
+          Container(
+            width: 64.w,
+            height: 64.w,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFD45A), Color(0xFFFF8C9E)],
+              ),
+              borderRadius: BorderRadius.circular(22.r),
+            ),
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 30.sp,
+            ),
+          ),
+          SizedBox(width: 16.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '还没有收藏故事',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: const Color(0xFF2D3446),
+                      ),
+                ),
+                SizedBox(height: 6.h),
+                Text(
+                  '创作第一个故事后，会自动出现在这里。',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: const Color(0xFF78839A),
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 12.w),
+          TextButton(
+            onPressed: onCreateStory,
+            child: Text(
+              '去创作',
+              style: TextStyle(
+                color: const Color(0xFF7357F6),
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -279,34 +340,3 @@ class _VipBanner extends StatelessWidget {
     );
   }
 }
-
-class _DemoStory {
-  const _DemoStory(this.title, this.meta, this.visual);
-
-  final String title;
-  final String meta;
-  final StoryVisual visual;
-}
-
-const _demoStories = [
-  _DemoStory(
-    '魔法森林',
-    '24 页 · 冒险',
-    StoryVisual(emoji: '🌳', color: Color(0xFF18D67C), subtitle: '魔法森林'),
-  ),
-  _DemoStory(
-    '勇敢的小星星',
-    '12 页 · 睡前故事',
-    StoryVisual(emoji: '⭐', color: Color(0xFFA075F5), subtitle: '睡前故事'),
-  ),
-  _DemoStory(
-    '海洋探险记',
-    '18 页 · 教育',
-    StoryVisual(emoji: '🌊', color: Color(0xFF19BCE1), subtitle: '海底世界'),
-  ),
-  _DemoStory(
-    '机器人伙伴',
-    '30 页 · 未来',
-    StoryVisual(emoji: '🤖', color: Color(0xFFFF9B67), subtitle: '未来伙伴'),
-  ),
-];
