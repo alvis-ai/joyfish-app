@@ -15,6 +15,7 @@ class JoyfishStoryCard extends StatelessWidget {
     required this.meta,
     required this.onTap,
     this.badge,
+    this.imageUrl,
     this.actionIcon = Icons.play_arrow_rounded,
   });
 
@@ -23,6 +24,7 @@ class JoyfishStoryCard extends StatelessWidget {
   final String meta;
   final VoidCallback onTap;
   final String? badge;
+  final String? imageUrl;
   final IconData actionIcon;
 
   @override
@@ -42,6 +44,7 @@ class JoyfishStoryCard extends StatelessWidget {
                 child: _StoryArt(
                   visual: visual,
                   badge: badge,
+                  imageUrl: imageUrl,
                   actionIcon: actionIcon,
                 ),
               ),
@@ -79,12 +82,14 @@ class JoyfishFeaturedStoryCard extends StatelessWidget {
     required this.title,
     required this.label,
     required this.onTap,
+    this.imageUrl,
   });
 
   final StoryVisual visual;
   final String title;
   final String label;
   final VoidCallback onTap;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -103,6 +108,7 @@ class JoyfishFeaturedStoryCard extends StatelessWidget {
                 _StoryArt(
                   visual: visual,
                   badge: label,
+                  imageUrl: imageUrl,
                   actionIcon: Icons.auto_awesome_rounded,
                 ),
                 Container(
@@ -143,12 +149,90 @@ class _StoryArt extends StatelessWidget {
   const _StoryArt({
     required this.visual,
     required this.badge,
+    required this.imageUrl,
     required this.actionIcon,
   });
 
   final StoryVisual visual;
   final String? badge;
+  final String? imageUrl;
   final IconData actionIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        _FallbackStoryArt(visual: visual, showEmoji: imageUrl == null),
+        if (imageUrl != null)
+          Image.network(
+            imageUrl!,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) {
+                return child;
+              }
+              return const SizedBox.shrink();
+            },
+            errorBuilder: (context, error, stackTrace) =>
+                _FallbackStoryArt(visual: visual, showEmoji: true),
+          ),
+        Positioned(
+          left: 16.w,
+          top: 16.h,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.24),
+              borderRadius: BorderRadius.circular(18.r),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Text(
+              badge ?? visual.subtitle,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          right: 14.w,
+          bottom: 14.h,
+          child: Container(
+            width: 42.w,
+            height: 42.w,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x1F000000),
+                  blurRadius: 12,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Icon(actionIcon, color: AppTheme.skyDeep, size: 22.sp),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FallbackStoryArt extends StatelessWidget {
+  const _FallbackStoryArt({required this.visual, required this.showEmoji});
+
+  final StoryVisual visual;
+  final bool showEmoji;
 
   @override
   Widget build(BuildContext context) {
@@ -189,51 +273,13 @@ class _StoryArt extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            left: 16.w,
-            top: 16.h,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.22),
-                borderRadius: BorderRadius.circular(18.r),
-              ),
+          if (showEmoji)
+            Center(
               child: Text(
-                badge ?? visual.subtitle,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w900,
-                ),
+                visual.emoji,
+                style: TextStyle(fontSize: 78.sp),
               ),
             ),
-          ),
-          Center(
-            child: Text(
-              visual.emoji,
-              style: TextStyle(fontSize: 78.sp),
-            ),
-          ),
-          Positioned(
-            right: 14.w,
-            bottom: 14.h,
-            child: Container(
-              width: 42.w,
-              height: 42.w,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x1F000000),
-                    blurRadius: 12,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Icon(actionIcon, color: AppTheme.skyDeep, size: 22.sp),
-            ),
-          ),
         ],
       ),
     );

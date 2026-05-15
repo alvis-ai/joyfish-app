@@ -6,6 +6,7 @@ import '../../../common/themes/app_theme.dart';
 import '../../../common/utils/story_presenter.dart';
 import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../common/widgets/story_cards.dart';
+import '../../../core/config/app_config.dart';
 import '../models/story_models.dart';
 import '../providers/story_providers.dart';
 
@@ -220,6 +221,7 @@ class _LibraryStoryCard extends StatelessWidget {
       title: story.title,
       meta: storyDayLabel(created),
       badge: visual.subtitle,
+      imageUrl: AppConfig.instance.resolveMediaUrl(story.coverImageUrl),
       onTap: onTap,
     );
   }

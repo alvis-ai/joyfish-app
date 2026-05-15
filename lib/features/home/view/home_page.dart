@@ -6,6 +6,7 @@ import '../../../common/themes/app_theme.dart';
 import '../../../common/widgets/app_button.dart';
 import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../common/widgets/story_cards.dart';
+import '../../../core/config/app_config.dart';
 import '../../../common/utils/story_presenter.dart';
 import '../../children/providers/child_providers.dart';
 import '../../story/models/story_models.dart';
@@ -182,6 +183,9 @@ class _FeaturedStoryCard extends StatelessWidget {
       visual: story == null ? fallback : storyVisualOf(story!),
       title: story?.title ?? '勇敢的小狗大冒险',
       label: '今日推荐',
+      imageUrl: story == null
+          ? null
+          : AppConfig.instance.resolveMediaUrl(story!.coverImageUrl),
       onTap: onTap,
     );
   }
@@ -202,6 +206,7 @@ class _ShelfCard extends StatelessWidget {
       title: story.title,
       meta: '${story.readingMinutes ?? 8} 页 · 故事',
       badge: visual.subtitle,
+      imageUrl: AppConfig.instance.resolveMediaUrl(story.coverImageUrl),
       onTap: onTap,
     );
   }

@@ -14,6 +14,7 @@ import '../../../core/config/app_config.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/story_models.dart';
 import '../repository/story_repository.dart';
+import '../service/story_audio_cache.dart';
 
 @RoutePage()
 class StoryDetailPage extends StatefulWidget {
@@ -30,7 +31,12 @@ class StoryDetailPage extends StatefulWidget {
 
 class _StoryDetailPageState extends State<StoryDetailPage> {
   final AudioPlayer _player = AudioPlayer();
+  final StoryAudioCache _audioCache = const StoryAudioCache();
   late Future<StoryRecord> _future;
+  StreamSubscription<PlayerState>? _playerStateSubscription;
+  Timer? _positionTicker;
+  Duration _displayPosition = Duration.zero;
+  DateTime? _lastPositionTick;
   bool _audioLoading = false;
   bool _audioReady = false;
   String? _audioLoadError;
@@ -38,42 +44,115 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
   @override
   void initState() {
     super.initState();
+    _playerStateSubscription =
+        _player.playerStateStream.listen(_syncPositionTicker);
     _future = _loadStory();
   }
 
   @override
   void dispose() {
+    _playerStateSubscription?.cancel();
+    _positionTicker?.cancel();
     _player.dispose();
     super.dispose();
   }
 
+  void _syncPositionTicker(PlayerState state) {
+    final shouldTick =
+        state.playing && state.processingState == ProcessingState.ready;
+    if (shouldTick && _positionTicker == null) {
+      _lastPositionTick = DateTime.now();
+      _positionTicker = Timer.periodic(const Duration(milliseconds: 250), (_) {
+        if (mounted) {
+          _advanceDisplayedPosition();
+        }
+      });
+      return;
+    }
+
+    if (!shouldTick && _positionTicker != null) {
+      _positionTicker?.cancel();
+      _positionTicker = null;
+      _lastPositionTick = null;
+      if (mounted) {
+        setState(() {
+          _displayPosition = _syncedPositionFor(state);
+        });
+      }
+    }
+  }
+
+  void _advanceDisplayedPosition() {
+    final now = DateTime.now();
+    final elapsed = now.difference(_lastPositionTick ?? now);
+    _lastPositionTick = now;
+
+    final playerPosition = _player.position;
+    var next = playerPosition > _displayPosition + elapsed
+        ? playerPosition
+        : _displayPosition + elapsed;
+    final duration = _player.duration;
+    if (duration != null && duration > Duration.zero && next > duration) {
+      next = duration;
+    }
+
+    setState(() => _displayPosition = next);
+  }
+
+  Duration _syncedPositionFor(PlayerState state) {
+    final duration = _player.duration;
+    if (state.processingState == ProcessingState.completed &&
+        duration != null &&
+        duration > Duration.zero) {
+      return duration;
+    }
+
+    final playerPosition = _player.position;
+    if (playerPosition > _displayPosition) {
+      return playerPosition;
+    }
+    return _displayPosition;
+  }
+
   Future<StoryRecord> _loadStory() async {
     final story = await StoryRepository().getStory(widget.storyId);
-    unawaited(_prepareAudio(story.audioUrl));
+    unawaited(_prepareAudio(story));
     return story;
   }
 
-  Future<void> _prepareAudio(String? rawAudioUrl) async {
-    final audioUrl = AppConfig.instance.resolveMediaUrl(rawAudioUrl);
+  Future<void> _prepareAudio(StoryRecord story) async {
+    final audioUrl = AppConfig.instance.resolveMediaUrl(story.audioUrl);
     if (audioUrl != null) {
       if (mounted) {
         setState(() {
           _audioLoading = true;
           _audioReady = false;
           _audioLoadError = null;
+          _displayPosition = Duration.zero;
         });
       }
       try {
-        await _player.setUrl(audioUrl);
+        final localPath = await _audioCache.resolve(
+          storyId: story.id,
+          audioUrl: audioUrl,
+        );
+        await _player.setFilePath(localPath);
         if (mounted) {
           setState(() => _audioReady = true);
         }
       } catch (_) {
-        if (mounted) {
-          setState(() {
-            _audioReady = false;
-            _audioLoadError = '音频暂时无法播放，可先阅读故事内容';
-          });
+        try {
+          await _player.setUrl(audioUrl);
+          if (mounted) {
+            setState(() => _audioReady = true);
+          }
+        } catch (_) {
+          if (mounted) {
+            setState(() {
+              _audioReady = false;
+              _audioLoadError = '音频暂时无法播放，可先阅读故事内容';
+            });
+          }
         }
       } finally {
         if (mounted) {
@@ -86,6 +165,29 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
         _audioLoadError = '当前故事暂无音频，可先阅读故事内容';
       });
     }
+  }
+
+  Future<void> _togglePlayback() async {
+    if (!_audioReady) {
+      return;
+    }
+
+    final state = _player.playerState;
+    if (state.processingState == ProcessingState.completed) {
+      await _player.seek(Duration.zero);
+      if (mounted) {
+        setState(() => _displayPosition = Duration.zero);
+      }
+      await _player.play();
+      return;
+    }
+
+    if (state.playing) {
+      await _player.pause();
+      return;
+    }
+
+    await _player.play();
   }
 
   @override
@@ -117,8 +219,7 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
           final visual = storyVisualOf(story);
           final coverUrl =
               AppConfig.instance.resolveMediaUrl(story.coverImageUrl);
-          final totalDuration =
-              _player.duration ?? Duration(minutes: story.readingMinutes ?? 8);
+          final fallbackDuration = Duration(minutes: story.readingMinutes ?? 8);
 
           return Stack(
             children: [
@@ -134,7 +235,7 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                 ),
               ),
               ListView(
-                padding: EdgeInsets.fromLTRB(26.w, 10.h, 26.w, 40.h),
+                padding: EdgeInsets.fromLTRB(26.w, 10.h, 26.w, 128.h),
                 children: [
                   _StoryTopBar(onBack: () => context.router.maybePop()),
                   SizedBox(height: 26.h),
@@ -260,13 +361,26 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                   StreamBuilder<PlayerState>(
                     stream: _player.playerStateStream,
                     builder: (context, snapshot) {
-                      final isPlaying = snapshot.data?.playing ?? false;
+                      final state = snapshot.data ?? _player.playerState;
+                      final completed =
+                          state.processingState == ProcessingState.completed;
+                      final isBuffering = state.processingState ==
+                              ProcessingState.loading ||
+                          state.processingState == ProcessingState.buffering;
+                      final isPlaying = state.playing &&
+                          state.processingState == ProcessingState.ready;
                       return AppButton(
                         text: _audioLoading
                             ? '音频加载中'
-                            : _audioReady
-                                ? (isPlaying ? '暂停故事' : '开始讲故事')
-                                : '音频暂不可用',
+                            : isBuffering
+                                ? '音频缓冲中'
+                                : _audioReady
+                                    ? (isPlaying
+                                        ? '暂停故事'
+                                        : completed
+                                            ? '重新讲故事'
+                                            : '开始讲故事')
+                                    : '音频暂不可用',
                         height: 68.h,
                         backgroundColor: AppTheme.peach,
                         textColor: AppTheme.olive,
@@ -278,49 +392,18 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                               : Icons.play_circle_outline_rounded,
                           color: AppTheme.olive,
                         ),
-                        onPressed: _audioReady
-                            ? () async {
-                                if (isPlaying) {
-                                  await _player.pause();
-                                } else {
-                                  await _player.play();
-                                }
-                              }
-                            : null,
+                        onPressed: _audioReady ? _togglePlayback : null,
                       );
                     },
                   ),
                   SizedBox(height: 20.h),
-                  StreamBuilder<Duration>(
-                    stream: _player.positionStream,
-                    builder: (context, snapshot) {
-                      final position = snapshot.data ?? Duration.zero;
-                      final totalMs = totalDuration.inMilliseconds == 0
-                          ? 1
-                          : totalDuration.inMilliseconds;
-                      return Column(
-                        children: [
-                          LinearProgressIndicator(
-                            minHeight: 10.h,
-                            value:
-                                (position.inMilliseconds / totalMs).clamp(0, 1),
-                            backgroundColor: const Color(0xFFE3EAF0),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                                AppTheme.skyDeep),
-                          ),
-                          SizedBox(height: 8.h),
-                          Row(
-                            children: [
-                              Text(_formatDuration(position),
-                                  style: Theme.of(context).textTheme.bodySmall),
-                              const Spacer(),
-                              Text(_formatDuration(totalDuration),
-                                  style: Theme.of(context).textTheme.bodySmall),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
+                  _AudioProgress(
+                    position: _displayPosition,
+                    actualDuration: _player.duration,
+                    fallbackDuration: fallbackDuration,
+                    minHeight: 10.h,
+                    color: AppTheme.skyDeep,
+                    showTotal: true,
                   ),
                   SizedBox(height: 26.h),
                   JoyfishCard(
@@ -328,6 +411,20 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                     child: _StoryBodyContent(story: story),
                   ),
                 ],
+              ),
+              Positioned(
+                left: 22.w,
+                right: 22.w,
+                bottom: MediaQuery.paddingOf(context).bottom + 16.h,
+                child: _FloatingAudioControl(
+                  player: _player,
+                  position: _displayPosition,
+                  fallbackDuration: fallbackDuration,
+                  loading: _audioLoading,
+                  ready: _audioReady,
+                  error: _audioLoadError,
+                  onToggle: _togglePlayback,
+                ),
               ),
             ],
           );
@@ -345,12 +442,264 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
     if (text.length <= 92) return text;
     return '${text.substring(0, 92)}...';
   }
+}
 
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
+class _FloatingAudioControl extends StatelessWidget {
+  const _FloatingAudioControl({
+    required this.player,
+    required this.position,
+    required this.fallbackDuration,
+    required this.loading,
+    required this.ready,
+    required this.error,
+    required this.onToggle,
+  });
+
+  final AudioPlayer player;
+  final Duration position;
+  final Duration fallbackDuration;
+  final bool loading;
+  final bool ready;
+  final String? error;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<PlayerState>(
+      stream: player.playerStateStream,
+      builder: (context, stateSnapshot) {
+        final playerState = stateSnapshot.data ?? player.playerState;
+        final completed =
+            playerState.processingState == ProcessingState.completed;
+        final isBuffering =
+            playerState.processingState == ProcessingState.loading ||
+                playerState.processingState == ProcessingState.buffering;
+        final isPlaying = playerState.playing &&
+            playerState.processingState == ProcessingState.ready;
+        final enabled = ready && !loading;
+
+        return JoyfishCard(
+          padding: EdgeInsets.fromLTRB(14.w, 12.h, 16.w, 12.h),
+          radius: 28.r,
+          backgroundColor: Colors.white.withValues(alpha: 0.96),
+          border: Border.all(color: const Color(0xFFF0EBF8), width: 1.2),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: enabled ? onToggle : null,
+                child: Container(
+                  width: 54.w,
+                  height: 54.w,
+                  decoration: BoxDecoration(
+                    gradient: enabled
+                        ? const LinearGradient(
+                            colors: [Color(0xFF7357F6), Color(0xFF5B7CF6)],
+                          )
+                        : null,
+                    color: enabled ? null : const Color(0xFFE4DFEA),
+                    shape: BoxShape.circle,
+                    boxShadow: enabled
+                        ? const [
+                            BoxShadow(
+                              color: Color(0x2F7357F6),
+                              blurRadius: 16,
+                              offset: Offset(0, 8),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: loading
+                      ? Padding(
+                          padding: EdgeInsets.all(16.w),
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(
+                          isPlaying && !completed
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                          color: enabled ? Colors.white : AppTheme.mutedInk,
+                          size: 34.sp,
+                        ),
+                ),
+              ),
+              SizedBox(width: 14.w),
+              Expanded(
+                child: _FloatingAudioDetails(
+                  player: player,
+                  position: position,
+                  fallbackDuration: fallbackDuration,
+                  loading: loading,
+                  buffering: isBuffering,
+                  ready: ready,
+                  isPlaying: isPlaying,
+                  completed: completed,
+                  error: error,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
+}
+
+class _FloatingAudioDetails extends StatelessWidget {
+  const _FloatingAudioDetails({
+    required this.player,
+    required this.position,
+    required this.fallbackDuration,
+    required this.loading,
+    required this.buffering,
+    required this.ready,
+    required this.isPlaying,
+    required this.completed,
+    required this.error,
+  });
+
+  final AudioPlayer player;
+  final Duration position;
+  final Duration fallbackDuration;
+  final bool loading;
+  final bool buffering;
+  final bool ready;
+  final bool isPlaying;
+  final bool completed;
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = loading
+        ? '正在准备音频'
+        : buffering
+            ? '正在缓冲音频'
+            : ready
+                ? (isPlaying
+                    ? '正在讲故事'
+                    : completed
+                        ? '点击重新播放'
+                        : '点击播放故事')
+                : '音频暂不可用';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: const Color(0xFF2D3446),
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+        SizedBox(height: 6.h),
+        _AudioProgress(
+          position: position,
+          actualDuration: player.duration,
+          fallbackDuration: fallbackDuration,
+          minHeight: 7.h,
+          color: const Color(0xFF7357F6),
+          enabled: ready,
+        ),
+        SizedBox(height: 5.h),
+        Text(
+          error ?? _formatAudioProgressLabel(position, player.duration),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.mutedInk,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AudioProgress extends StatelessWidget {
+  const _AudioProgress({
+    required this.position,
+    required this.actualDuration,
+    required this.fallbackDuration,
+    required this.minHeight,
+    required this.color,
+    this.enabled = true,
+    this.showTotal = false,
+  });
+
+  final Duration position;
+  final Duration? actualDuration;
+  final Duration fallbackDuration;
+  final double minHeight;
+  final Color color;
+  final bool enabled;
+  final bool showTotal;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasActualDuration =
+        actualDuration != null && actualDuration! > Duration.zero;
+    final duration = hasActualDuration ? actualDuration! : fallbackDuration;
+    final displayPosition = position > duration ? duration : position;
+    final totalMs = duration.inMilliseconds == 0 ? 1 : duration.inMilliseconds;
+    final value = enabled
+        ? (displayPosition.inMilliseconds / totalMs).clamp(0.0, 1.0)
+        : 0.0;
+
+    final progress = ClipRRect(
+      borderRadius: BorderRadius.circular(99.r),
+      child: LinearProgressIndicator(
+        minHeight: minHeight,
+        value: value,
+        backgroundColor: const Color(0xFFE8E2F2),
+        valueColor: AlwaysStoppedAnimation<Color>(color),
+      ),
+    );
+
+    if (!showTotal) {
+      return progress;
+    }
+
+    return Column(
+      children: [
+        progress,
+        SizedBox(height: 8.h),
+        Row(
+          children: [
+            Text(
+              _formatAudioDuration(displayPosition),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const Spacer(),
+            Text(
+              hasActualDuration
+                  ? _formatAudioDuration(duration)
+                  : '约 ${_formatAudioDuration(duration)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+String _formatAudioDuration(Duration duration) {
+  final minutes = duration.inMinutes;
+  final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+  return '$minutes:$seconds';
+}
+
+String _formatAudioProgressLabel(Duration position, Duration? duration) {
+  if (duration == null || duration <= Duration.zero) {
+    return _formatAudioDuration(position);
+  }
+  return '${_formatAudioDuration(position)} / ${_formatAudioDuration(duration)}';
 }
 
 enum _StoryBlockType { heading, paragraph, image }
