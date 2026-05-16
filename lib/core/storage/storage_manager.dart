@@ -79,6 +79,18 @@ class StorageManager {
     return null;
   }
 
+  static Future<void> saveCacheValue(String key, dynamic value) async {
+    await _box.put(key, value);
+  }
+
+  static dynamic getCacheValue(String key) {
+    return _box.get(key);
+  }
+
+  static Future<void> deleteCacheValue(String key) async {
+    await _box.delete(key);
+  }
+
   static Future<void> clearSession() async {
     await clearToken();
     await clearUserInfo();

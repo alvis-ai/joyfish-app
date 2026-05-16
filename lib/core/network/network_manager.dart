@@ -74,6 +74,22 @@ class NetworkManager {
     );
   }
 
+  static Future<Response<dynamic>> delete(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) {
+    return _dio.delete<dynamic>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    );
+  }
+
   static Future<T> requestEnvelope<T>(
     Future<Response<dynamic>> Function() request,
     T Function(Object? data) parser,

@@ -8,6 +8,7 @@ import 'package:just_audio/just_audio.dart';
 import '../../../common/themes/app_theme.dart';
 import '../../../common/utils/story_presenter.dart';
 import '../../../common/widgets/app_button.dart';
+import '../../../common/widgets/joyfish_cached_image.dart';
 import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../common/widgets/story_cards.dart';
 import '../../../core/config/app_config.dart';
@@ -899,23 +900,18 @@ class _StoryImage extends StatelessWidget {
       borderRadius: BorderRadius.circular(18.r),
       child: AspectRatio(
         aspectRatio: 1,
-        child: Image.network(
-          url,
+        child: JoyfishCachedImage(
+          imageUrl: url,
           fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) {
-              return child;
-            }
-            return Container(
-              color: const Color(0xFFEAF5FF),
-              alignment: Alignment.center,
-              child: SizedBox(
-                width: 24.w,
-                height: 24.w,
-                child: const CircularProgressIndicator(strokeWidth: 2),
-              ),
-            );
-          },
+          placeholder: (context) => Container(
+            color: const Color(0xFFEAF5FF),
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: 24.w,
+              height: 24.w,
+              child: const CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
           errorBuilder: (context, error, stackTrace) => Container(
             color: const Color(0xFFEAF5FF),
             alignment: Alignment.center,
@@ -965,8 +961,8 @@ class _DetailCover extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         if (imageUrl != null)
-          Image.network(
-            imageUrl!,
+          JoyfishCachedImage(
+            imageUrl: imageUrl!,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) =>
                 _FallbackCover(visual: visual),

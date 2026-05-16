@@ -170,7 +170,7 @@ class _StoryGeneratingPageState extends ConsumerState<StoryGeneratingPage>
       });
 
       if (request.status == 'succeeded' && !_navigating) {
-        final stories = await repository.listStories();
+        final stories = await repository.listStories(forceRefresh: true);
         StoryRecord? match;
         for (final story in stories) {
           if (story.requestId == widget.requestId) {
@@ -180,12 +180,14 @@ class _StoryGeneratingPageState extends ConsumerState<StoryGeneratingPage>
         }
         if (match != null && mounted) {
           _navigating = true;
+          ref.invalidate(monthlyStoryCreationCountProvider);
           await ref
               .read(storyLibraryControllerProvider.notifier)
               .loadStories(force: true);
           if (!mounted) return;
           context.router.replace(StoryDetailRoute(storyId: match.id));
         } else {
+          ref.invalidate(monthlyStoryCreationCountProvider);
           await ref
               .read(storyLibraryControllerProvider.notifier)
               .loadStories(force: true);
@@ -200,6 +202,7 @@ class _StoryGeneratingPageState extends ConsumerState<StoryGeneratingPage>
   }
 
   Future<void> _syncAfterExit() {
+    ref.invalidate(monthlyStoryCreationCountProvider);
     return ref
         .read(storyLibraryControllerProvider.notifier)
         .loadStories(force: true);

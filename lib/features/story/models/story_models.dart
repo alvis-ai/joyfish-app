@@ -120,4 +120,22 @@ class StoryRecord {
       publishedAt: DateTime.tryParse(json['published_at'] as String? ?? ''),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'request_id': requestId,
+      'title': title,
+      'summary': summary,
+      'language': language,
+      'reading_minutes': readingMinutes,
+      'age_range': ageRange,
+      'body_md': bodyMd,
+      'cover_image_url': coverImageUrl,
+      'audio_url': audioUrl,
+      'visibility': visibility,
+      'created_at': createdAt?.toIso8601String(),
+      'published_at': publishedAt?.toIso8601String(),
+    };
+  }
 }

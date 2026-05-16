@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../themes/app_theme.dart';
 import '../utils/story_presenter.dart';
+import 'joyfish_cached_image.dart';
 import 'joyfish_scaffold.dart';
 
 const double joyfishGoldenRatio = 1.61803398875;
@@ -17,6 +18,7 @@ class JoyfishStoryCard extends StatelessWidget {
     this.badge,
     this.imageUrl,
     this.actionIcon = Icons.play_arrow_rounded,
+    this.onDelete,
   });
 
   final StoryVisual visual;
@@ -26,6 +28,7 @@ class JoyfishStoryCard extends StatelessWidget {
   final String? badge;
   final String? imageUrl;
   final IconData actionIcon;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +49,7 @@ class JoyfishStoryCard extends StatelessWidget {
                   badge: badge,
                   imageUrl: imageUrl,
                   actionIcon: actionIcon,
+                  onDelete: onDelete,
                 ),
               ),
             ),
@@ -110,6 +114,7 @@ class JoyfishFeaturedStoryCard extends StatelessWidget {
                   badge: label,
                   imageUrl: imageUrl,
                   actionIcon: Icons.auto_awesome_rounded,
+                  onDelete: null,
                 ),
                 Container(
                   decoration: const BoxDecoration(
@@ -151,12 +156,14 @@ class _StoryArt extends StatelessWidget {
     required this.badge,
     required this.imageUrl,
     required this.actionIcon,
+    required this.onDelete,
   });
 
   final StoryVisual visual;
   final String? badge;
   final String? imageUrl;
   final IconData actionIcon;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -165,15 +172,10 @@ class _StoryArt extends StatelessWidget {
       children: [
         _FallbackStoryArt(visual: visual, showEmoji: imageUrl == null),
         if (imageUrl != null)
-          Image.network(
-            imageUrl!,
+          JoyfishCachedImage(
+            imageUrl: imageUrl!,
             fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) {
-                return child;
-              }
-              return const SizedBox.shrink();
-            },
+            placeholder: (_) => const SizedBox.shrink(),
             errorBuilder: (context, error, stackTrace) =>
                 _FallbackStoryArt(visual: visual, showEmoji: true),
           ),
@@ -223,6 +225,28 @@ class _StoryArt extends StatelessWidget {
             child: Icon(actionIcon, color: AppTheme.skyDeep, size: 22.sp),
           ),
         ),
+        if (onDelete != null)
+          Positioned(
+            right: 12.w,
+            top: 12.h,
+            child: Material(
+              color: Colors.white.withValues(alpha: 0.92),
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onDelete,
+                child: SizedBox(
+                  width: 34.w,
+                  height: 34.w,
+                  child: Icon(
+                    Icons.delete_outline_rounded,
+                    color: const Color(0xFFE85D75),
+                    size: 20.sp,
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

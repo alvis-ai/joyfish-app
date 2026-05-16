@@ -7,6 +7,7 @@ import '../../../common/utils/story_presenter.dart';
 import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../common/widgets/story_cards.dart';
 import '../../../core/config/app_config.dart';
+import '../../auth/providers/session_providers.dart';
 import '../models/story_models.dart';
 import '../providers/story_providers.dart';
 
@@ -23,13 +24,22 @@ class StoryLibraryPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(storyLibraryControllerProvider);
+    final user = ref.watch(sessionControllerProvider).user;
+    final creationCount = ref.watch(monthlyStoryCreationCountProvider);
     final stories = state.items;
-    final used = stories.length.clamp(0, 6);
+    final monthlyLimit = user?.hasActiveMembership == true ? 60 : 6;
+    final used = creationCount.maybeWhen(
+      data: (count) => count.clamp(0, monthlyLimit).toInt(),
+      orElse: () => stories.length.clamp(0, monthlyLimit).toInt(),
+    );
 
     return RefreshIndicator(
-      onRefresh: () => ref
-          .read(storyLibraryControllerProvider.notifier)
-          .loadStories(force: true),
+      onRefresh: () async {
+        ref.invalidate(monthlyStoryCreationCountProvider);
+        await ref
+            .read(storyLibraryControllerProvider.notifier)
+            .loadStories(force: true);
+      },
       child: ListView(
         padding: EdgeInsets.fromLTRB(28.w, 0, 28.w, 132.h),
         children: [
@@ -43,7 +53,11 @@ class StoryLibraryPage extends ConsumerWidget {
             ),
           ),
           SizedBox(height: 28.h),
-          _ProgressCard(used: used, onCreate: onCompose),
+          _ProgressCard(
+            used: used,
+            limit: monthlyLimit,
+            onCreate: onCompose,
+          ),
           SizedBox(height: 28.h),
           Row(
             children: [
@@ -76,6 +90,12 @@ class StoryLibraryPage extends ConsumerWidget {
                 return _LibraryStoryCard(
                   story: story,
                   onTap: () => onOpenStory(story.id),
+                  onDelete: () => _handleDeleteStory(
+                    context,
+                    ref,
+                    story,
+                    canDelete: user?.hasActiveMembership == true,
+                  ),
                 );
               },
             ),
@@ -93,17 +113,84 @@ class StoryLibraryPage extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _handleDeleteStory(
+    BuildContext context,
+    WidgetRef ref,
+    StoryRecord story, {
+    required bool canDelete,
+  }) async {
+    if (!canDelete) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('会员专属功能'),
+          content: const Text('开通会员后可以删除书架里的故事。删除不会返还本月创作额度。'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('知道了'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除这个故事？'),
+        content: Text(
+          '《${story.title}》删除后不能恢复，也不会返还或减少已创建故事的整体数量。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('确认删除'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+
+    final deleted = await ref
+        .read(storyLibraryControllerProvider.notifier)
+        .deleteStory(story.id);
+    if (!context.mounted) {
+      return;
+    }
+
+    final message = deleted
+        ? '故事已删除，已创建故事数量不受影响'
+        : ref.read(storyLibraryControllerProvider).error ?? '删除失败，请稍后重试';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 }
 
 class _ProgressCard extends StatelessWidget {
-  const _ProgressCard({required this.used, required this.onCreate});
+  const _ProgressCard({
+    required this.used,
+    required this.limit,
+    required this.onCreate,
+  });
 
   final int used;
+  final int limit;
   final VoidCallback onCreate;
 
   @override
   Widget build(BuildContext context) {
-    final remaining = 6 - used;
+    final remaining = (limit - used).clamp(0, limit).toInt();
     return GestureDetector(
       onTap: onCreate,
       child: Container(
@@ -138,7 +225,7 @@ class _ProgressCard extends StatelessWidget {
                           .headlineMedium
                           ?.copyWith(color: AppTheme.olive)),
                 ),
-                Text('$used / 6',
+                Text('$used / $limit',
                     style: Theme.of(context)
                         .textTheme
                         .headlineMedium
@@ -150,7 +237,7 @@ class _ProgressCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(99.r),
               child: LinearProgressIndicator(
                 minHeight: 16.h,
-                value: used / 6,
+                value: limit == 0 ? 0 : used / limit,
                 backgroundColor: Colors.white,
                 valueColor:
                     const AlwaysStoppedAnimation<Color>(AppTheme.skyDeep),
@@ -207,10 +294,15 @@ class _EmptyLibrary extends StatelessWidget {
 }
 
 class _LibraryStoryCard extends StatelessWidget {
-  const _LibraryStoryCard({required this.story, required this.onTap});
+  const _LibraryStoryCard({
+    required this.story,
+    required this.onTap,
+    required this.onDelete,
+  });
 
   final StoryRecord story;
   final VoidCallback onTap;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -223,6 +315,7 @@ class _LibraryStoryCard extends StatelessWidget {
       badge: visual.subtitle,
       imageUrl: AppConfig.instance.resolveMediaUrl(story.coverImageUrl),
       onTap: onTap,
+      onDelete: onDelete,
     );
   }
 }

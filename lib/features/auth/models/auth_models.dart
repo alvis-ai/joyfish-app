@@ -23,7 +23,7 @@ class AuthUser {
     required this.createdAt,
   });
 
-  bool get canUseCustomStoryPrompt {
+  bool get hasActiveMembership {
     final normalized = membershipTier.trim().toLowerCase();
     final activeTier = normalized == 'vip' ||
         normalized == 'monthly' ||
@@ -36,6 +36,8 @@ class AuthUser {
     final expiresAt = membershipExpiresAt;
     return expiresAt == null || expiresAt.isAfter(DateTime.now());
   }
+
+  bool get canUseCustomStoryPrompt => hasActiveMembership;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     final explicitVip = json['is_vip'] == true;

@@ -51,7 +51,7 @@ class StoryLibraryController extends StateNotifier<StoryLibraryState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final items = await _repository.listStories();
+      final items = await _repository.listStories(forceRefresh: force);
       state = state.copyWith(loaded: true, isLoading: false, items: items);
     } catch (error) {
       state = state.copyWith(
@@ -61,11 +61,47 @@ class StoryLibraryController extends StateNotifier<StoryLibraryState> {
       );
     }
   }
+
+  Future<bool> deleteStory(int storyId) async {
+    if (state.isLoading) {
+      return false;
+    }
+
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _repository.deleteStory(storyId);
+      final items = state.items
+          .where((story) => story.id != storyId)
+          .toList(growable: false);
+      state = state.copyWith(isLoading: false, loaded: true, items: items);
+      return true;
+    } catch (error) {
+      state = state.copyWith(
+        isLoading: false,
+        error: userFacingErrorMessage(error),
+      );
+      return false;
+    }
+  }
 }
 
 final storyLibraryControllerProvider =
     StateNotifierProvider<StoryLibraryController, StoryLibraryState>((ref) {
   return StoryLibraryController(ref);
+});
+
+final monthlyStoryCreationCountProvider = FutureProvider<int>((ref) async {
+  final requests = await ref.read(storyRepositoryProvider).listStoryRequests();
+  final now = DateTime.now();
+  final monthStart = DateTime(now.year, now.month);
+  final nextMonthStart = DateTime(now.year, now.month + 1);
+
+  return requests.where((request) {
+    final createdAt = request.createdAt;
+    return createdAt != null &&
+        !createdAt.isBefore(monthStart) &&
+        createdAt.isBefore(nextMonthStart);
+  }).length;
 });
 
 final recentStoriesProvider = Provider<List<StoryRecord>>((ref) {
