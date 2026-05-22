@@ -3,7 +3,7 @@ import '../models/story_models.dart';
 import '../service/story_cache.dart';
 
 class StoryRepository {
-  StoryRepository({StoryCache cache = const StoryCache()}) : _cache = cache;
+  StoryRepository({this._cache = const StoryCache()});
 
   final StoryCache _cache;
 
