@@ -9,6 +9,7 @@ import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../core/router/app_router.dart';
 import '../../auth/providers/session_providers.dart';
 import '../../children/providers/child_providers.dart';
+import '../providers/subscription_providers.dart';
 import '../../story/providers/story_providers.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -26,7 +27,22 @@ class ProfilePage extends ConsumerWidget {
     final session = ref.watch(sessionControllerProvider);
     final childState = ref.watch(childControllerProvider);
     final storyState = ref.watch(storyLibraryControllerProvider);
+    final subscriptionState = ref.watch(subscriptionControllerProvider);
     final phone = session.user?.phoneNumber ?? '未设置手机号';
+    final isVip = session.user?.hasActiveMembership == true;
+    final monthlyProduct = subscriptionState.products[joyfishMonthlyProductId];
+    final annualProduct = subscriptionState.products[joyfishAnnualProductId];
+
+    ref.listen(subscriptionControllerProvider, (previous, next) {
+      final messenger = ScaffoldMessenger.of(context);
+      final error = next.error;
+      final message = next.message;
+      if (error != null && error != previous?.error) {
+        messenger.showSnackBar(SnackBar(content: Text(error)));
+      } else if (message != null && message != previous?.message) {
+        messenger.showSnackBar(SnackBar(content: Text(message)));
+      }
+    });
 
     return ListView(
       padding: EdgeInsets.fromLTRB(22.w, 10.h, 22.w, 140.h),
@@ -35,12 +51,20 @@ class ProfilePage extends ConsumerWidget {
           title: '会员中心',
           subtitle: '管理故事额度、孩子档案和会员权益',
           trailing: JoyfishIconBubble(
-            icon: Icons.stars_rounded,
-            onTap: () {},
+            icon: Icons.refresh_rounded,
+            onTap: () => ref
+                .read(subscriptionControllerProvider.notifier)
+                .loadProducts(),
           ),
         ),
         SizedBox(height: 26.h),
-        _StatusCard(phone: phone, storyCount: storyState.items.length),
+        _StatusCard(
+          phone: phone,
+          storyCount: storyState.items.length,
+          isVip: isVip,
+          membershipTier: session.user?.membershipTier ?? 'free',
+          expiresAt: session.user?.membershipExpiresAt,
+        ),
         SizedBox(height: 22.h),
         _BenefitCard(
           title: '普通用户',
@@ -72,20 +96,44 @@ class ProfilePage extends ConsumerWidget {
           icon: Icons.calendar_month_rounded,
           title: '连续包月会员',
           subtitle: '随时取消，轻松开启',
-          price: '¥16',
+          price: monthlyProduct?.price ?? '¥16',
           unit: '/月',
-          button: '立即订阅',
+          button: isVip ? '续订包月' : '立即订阅',
           highlighted: false,
+          isLoading: subscriptionState.purchasing,
+          onPressed: subscriptionState.storeAvailable
+              ? () => ref
+                  .read(subscriptionControllerProvider.notifier)
+                  .buy(joyfishMonthlyProductId)
+              : null,
         ),
         SizedBox(height: 24.h),
         _PlanCard(
           icon: Icons.workspace_premium_rounded,
           title: '年度探险家会员',
           subtitle: '平均每月仅需 ¥12.5',
-          price: '¥150',
+          price: annualProduct?.price ?? '¥150',
           unit: '/年',
           button: '立即开启一整年',
           highlighted: true,
+          isLoading: subscriptionState.purchasing,
+          onPressed: subscriptionState.storeAvailable
+              ? () => ref
+                  .read(subscriptionControllerProvider.notifier)
+                  .buy(joyfishAnnualProductId)
+              : null,
+        ),
+        SizedBox(height: 14.h),
+        AppButton.secondary(
+          text: subscriptionState.restoring ? '正在恢复购买...' : '恢复购买',
+          height: 50.h,
+          isLoading: subscriptionState.restoring,
+          icon: const Icon(Icons.restore_rounded, color: AppTheme.skyDeep),
+          onPressed: subscriptionState.storeAvailable
+              ? () => ref
+                  .read(subscriptionControllerProvider.notifier)
+                  .restorePurchases()
+              : null,
         ),
         SizedBox(height: 26.h),
         Row(
@@ -127,10 +175,19 @@ class ProfilePage extends ConsumerWidget {
 }
 
 class _StatusCard extends StatelessWidget {
-  const _StatusCard({required this.phone, required this.storyCount});
+  const _StatusCard({
+    required this.phone,
+    required this.storyCount,
+    required this.isVip,
+    required this.membershipTier,
+    required this.expiresAt,
+  });
 
   final String phone;
   final int storyCount;
+  final bool isVip;
+  final String membershipTier;
+  final DateTime? expiresAt;
 
   @override
   Widget build(BuildContext context) {
@@ -154,10 +211,13 @@ class _StatusCard extends StatelessWidget {
                   .bodyMedium
                   ?.copyWith(color: AppTheme.skyDeep)),
           SizedBox(height: 8.h),
-          Text('普通小读者', style: Theme.of(context).textTheme.headlineMedium),
+          Text(
+            isVip ? _tierLabel(membershipTier) : '普通小读者',
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
           SizedBox(height: 8.h),
           Text(
-            '${_maskPhone(phone)} · 已创作 $storyCount 篇故事',
+            '${_maskPhone(phone)} · 已创作 $storyCount 篇故事${_expiryLabel()}',
             textAlign: TextAlign.center,
             style: Theme.of(context)
                 .textTheme
@@ -175,6 +235,26 @@ class _StatusCard extends StatelessWidget {
   static String _maskPhone(String phone) {
     if (phone.length < 7) return phone;
     return '${phone.substring(0, 3)}****${phone.substring(phone.length - 4)}';
+  }
+
+  String _expiryLabel() {
+    final value = expiresAt;
+    if (!isVip || value == null) {
+      return '';
+    }
+    return ' · 有效期至 ${value.year}.${value.month.toString().padLeft(2, '0')}.${value.day.toString().padLeft(2, '0')}';
+  }
+
+  static String _tierLabel(String tier) {
+    switch (tier.trim().toLowerCase()) {
+      case 'monthly':
+        return '连续包月会员';
+      case 'annual':
+      case 'yearly':
+        return '年度探险家会员';
+      default:
+        return 'VIP 探索者';
+    }
   }
 }
 
@@ -248,6 +328,8 @@ class _PlanCard extends StatelessWidget {
     required this.unit,
     required this.button,
     required this.highlighted,
+    required this.onPressed,
+    this.isLoading = false,
   });
 
   final IconData icon;
@@ -257,6 +339,8 @@ class _PlanCard extends StatelessWidget {
   final String unit;
   final String button;
   final bool highlighted;
+  final VoidCallback? onPressed;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -295,10 +379,11 @@ class _PlanCard extends StatelessWidget {
           AppButton(
             text: button,
             height: 54.h,
+            isLoading: isLoading,
             backgroundColor:
                 highlighted ? AppTheme.olive : AppTheme.purpleLight,
             textColor: highlighted ? Colors.white : AppTheme.skyDeep,
-            onPressed: () {},
+            onPressed: onPressed,
           ),
         ],
       ),

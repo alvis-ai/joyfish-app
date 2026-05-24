@@ -59,7 +59,8 @@ class SessionController extends StateNotifier<SessionState> {
     state = state.copyWith(bootstrapping: true, clearError: true);
     final token = await StorageManager.getToken();
     if (token == null || token.isEmpty) {
-      state = state.copyWith(initialized: true, bootstrapping: false, user: null);
+      state =
+          state.copyWith(initialized: true, bootstrapping: false, user: null);
       return;
     }
 
@@ -168,6 +169,11 @@ class SessionController extends StateNotifier<SessionState> {
 
   void clearError() {
     state = state.copyWith(clearError: true);
+  }
+
+  Future<void> updateUser(AuthUser user) async {
+    await StorageManager.saveUserInfo(user.toJson());
+    state = state.copyWith(user: user, clearError: true);
   }
 
   Future<void> _persistSession(AuthSession session) async {

@@ -75,6 +75,31 @@ class AuthRepository {
     );
   }
 
+  Future<AuthUser> confirmAppleSubscription({
+    required String productId,
+    required String verificationData,
+    String? purchaseId,
+    String? transactionDate,
+    String? source,
+    String? localVerificationData,
+  }) {
+    return NetworkManager.requestEnvelope(
+      () => NetworkManager.post(
+        '/auth/subscriptions/apple',
+        data: {
+          'product_id': productId,
+          'verification_data': verificationData,
+          if (purchaseId != null) 'purchase_id': purchaseId,
+          if (transactionDate != null) 'transaction_date': transactionDate,
+          if (source != null) 'source': source,
+          if (localVerificationData != null)
+            'local_verification_data': localVerificationData,
+        },
+      ),
+      (data) => AuthUser.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
+  }
+
   Future<void> logout() async {
     await NetworkManager.requestEnvelope(
       () => NetworkManager.post('/auth/logout'),
