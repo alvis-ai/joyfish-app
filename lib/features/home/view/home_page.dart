@@ -87,7 +87,7 @@ class HomePage extends ConsumerWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 22.w,
                 mainAxisSpacing: 24.h,
-                mainAxisExtent: 268.h,
+                mainAxisExtent: 342.h,
               ),
               itemBuilder: (context, index) {
                 final story = shelfStories[index];
@@ -103,10 +103,9 @@ class HomePage extends ConsumerWidget {
           if (childrenState.error != null || voiceState.error != null)
             Text(
               childrenState.error ?? voiceState.error ?? '',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.red),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.red),
             ),
         ],
       ),
@@ -129,8 +128,8 @@ class _SectionTitle extends StatelessWidget {
           child: Text(
             title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: const Color(0xFF2D3446),
-                ),
+              color: const Color(0xFF2D3446),
+            ),
           ),
         ),
         if (action != null)
@@ -159,9 +158,9 @@ class _PlainTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: const Color(0xFF2D3446),
-          ),
+      style: Theme.of(
+        context,
+      ).textTheme.headlineMedium?.copyWith(color: const Color(0xFF2D3446)),
     );
   }
 }
@@ -247,16 +246,16 @@ class _EmptyShelfCard extends StatelessWidget {
                 Text(
                   '还没有收藏故事',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: const Color(0xFF2D3446),
-                      ),
+                    color: const Color(0xFF2D3446),
+                  ),
                 ),
                 SizedBox(height: 6.h),
                 Text(
                   '创作第一个故事后，会自动出现在这里。',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF78839A),
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: const Color(0xFF78839A),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -309,17 +308,19 @@ class _VipBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('解锁 1000+ 故事',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(color: AppTheme.olive)),
+                Text(
+                  '解锁 1000+ 故事',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineMedium?.copyWith(color: AppTheme.olive),
+                ),
                 SizedBox(height: 8.h),
-                Text('加入 VIP 会员，开启无限想象空间',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(color: AppTheme.olive)),
+                Text(
+                  '加入 VIP 会员，开启无限想象空间',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: AppTheme.olive),
+                ),
                 SizedBox(height: 16.h),
                 SizedBox(
                   width: 132.w,
@@ -337,8 +338,11 @@ class _VipBanner extends StatelessWidget {
           CircleAvatar(
             radius: 44.r,
             backgroundColor: const Color(0x4D705E00),
-            child: Icon(Icons.auto_awesome_rounded,
-                color: Colors.white, size: 42.sp),
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 42.sp,
+            ),
           ),
         ],
       ),

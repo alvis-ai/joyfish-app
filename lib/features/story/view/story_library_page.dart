@@ -53,19 +53,18 @@ class StoryLibraryPage extends ConsumerWidget {
             ),
           ),
           SizedBox(height: 28.h),
-          _ProgressCard(
-            used: used,
-            limit: monthlyLimit,
-            onCreate: onCompose,
-          ),
+          _ProgressCard(used: used, limit: monthlyLimit, onCreate: onCompose),
           SizedBox(height: 28.h),
           Row(
             children: [
               CircleAvatar(
                 radius: 38.r,
                 backgroundColor: AppTheme.leaf,
-                child: Icon(Icons.library_books_rounded,
-                    color: AppTheme.olive, size: 34.sp),
+                child: Icon(
+                  Icons.library_books_rounded,
+                  color: AppTheme.olive,
+                  size: 34.sp,
+                ),
               ),
               SizedBox(width: 16.w),
               Text('我的故事屋', style: Theme.of(context).textTheme.headlineMedium),
@@ -83,7 +82,7 @@ class StoryLibraryPage extends ConsumerWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 22.w,
                 mainAxisSpacing: 24.h,
-                mainAxisExtent: 268.h,
+                mainAxisExtent: 342.h,
               ),
               itemBuilder: (context, index) {
                 final story = stories[index];
@@ -103,10 +102,9 @@ class StoryLibraryPage extends ConsumerWidget {
             SizedBox(height: 12.h),
             Text(
               state.error!,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.red),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.red),
             ),
           ],
         ],
@@ -141,9 +139,7 @@ class StoryLibraryPage extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('删除这个故事？'),
-        content: Text(
-          '《${story.title}》删除后不能恢复，也不会返还或减少已创建故事的整体数量。',
-        ),
+        content: Text('《${story.title}》删除后不能恢复，也不会返还或减少已创建故事的整体数量。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -171,9 +167,9 @@ class StoryLibraryPage extends ConsumerWidget {
     final message = deleted
         ? '故事已删除，已创建故事数量不受影响'
         : ref.read(storyLibraryControllerProvider).error ?? '删除失败，请稍后重试';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -215,21 +211,26 @@ class _ProgressCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.auto_awesome_rounded,
-                    color: AppTheme.olive, size: 28.sp),
+                Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppTheme.olive,
+                  size: 28.sp,
+                ),
                 SizedBox(width: 12.w),
                 Expanded(
-                  child: Text('本月故事进度',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
-                          ?.copyWith(color: AppTheme.olive)),
+                  child: Text(
+                    '本月故事进度',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineMedium?.copyWith(color: AppTheme.olive),
+                  ),
                 ),
-                Text('$used / $limit',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(color: AppTheme.olive)),
+                Text(
+                  '$used / $limit',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineMedium?.copyWith(color: AppTheme.olive),
+                ),
               ],
             ),
             SizedBox(height: 18.h),
@@ -239,17 +240,17 @@ class _ProgressCard extends StatelessWidget {
                 minHeight: 16.h,
                 value: limit == 0 ? 0 : used / limit,
                 backgroundColor: Colors.white,
-                valueColor:
-                    const AlwaysStoppedAnimation<Color>(AppTheme.skyDeep),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  AppTheme.skyDeep,
+                ),
               ),
             ),
             SizedBox(height: 18.h),
             Text(
               '你还可以创作 $remaining 个新故事！',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(color: AppTheme.olive),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(color: AppTheme.olive),
             ),
           ],
         ),
@@ -273,7 +274,10 @@ class _EmptyLibrary extends StatelessWidget {
         border: Border.all(color: const Color(0xFFD8D0BD), width: 2),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x33716B5D), blurRadius: 0, offset: Offset(5, 7)),
+            color: Color(0x33716B5D),
+            blurRadius: 0,
+            offset: Offset(5, 7),
+          ),
         ],
       ),
       child: Column(
@@ -282,9 +286,11 @@ class _EmptyLibrary extends StatelessWidget {
           SizedBox(height: 14.h),
           Text('还没有故事', style: Theme.of(context).textTheme.headlineLarge),
           SizedBox(height: 8.h),
-          Text('先生成第一篇，故事屋会马上热闹起来。',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge),
+          Text(
+            '先生成第一篇，故事屋会马上热闹起来。',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
           SizedBox(height: 18.h),
           FilledButton(onPressed: onCreate, child: const Text('去创作')),
         ],
