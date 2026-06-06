@@ -56,8 +56,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
     ref.listen<SessionState>(sessionControllerProvider, (previous, next) {
       if (next.error != null && next.error != previous?.error && mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(next.error!)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!)));
       }
       if (next.isAuthenticated && !(previous?.isAuthenticated ?? false)) {
         context.router.replace(const MainShellRoute());
@@ -66,17 +67,13 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: const Color(0xFFF7F6FC),
+      backgroundColor: const Color(0xFFFFF7E8),
       body: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF8F7FC),
-              Color(0xFFF1EFFB),
-              Color(0xFFFFF8EC),
-            ],
+            colors: [Color(0xFFFFF7E8), Color(0xFFFFEBC3), Color(0xFFEAF7E0)],
           ),
         ),
         child: SafeArea(
@@ -91,18 +88,17 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                   onChanged: () => setState(() {}),
                   onRequestCode:
                       _registerPhoneController.text.trim().length >= 11 &&
-                              !_requestingRegisterCode &&
-                              !sessionState.submitting
-                          ? () => _requestRegisterCode(
-                              _registerPhoneController.text.trim())
-                          : null,
+                          !_requestingRegisterCode &&
+                          !sessionState.submitting
+                      ? () => _requestRegisterCode(
+                          _registerPhoneController.text.trim(),
+                        )
+                      : null,
                   onLoginTap: () => setState(() => _mode = _AuthMode.login),
-                  onOpenTerms: () => _openLegalDocument(
-                    '/static/legal/user-agreement.html',
-                  ),
-                  onOpenPrivacy: () => _openLegalDocument(
-                    '/static/legal/privacy-policy.html',
-                  ),
+                  onOpenTerms: () =>
+                      _openLegalDocument('/static/legal/user-agreement.html'),
+                  onOpenPrivacy: () =>
+                      _openLegalDocument('/static/legal/privacy-policy.html'),
                   acceptedLegal: _acceptedLegal,
                   onAcceptedLegalChanged: (value) =>
                       setState(() => _acceptedLegal = value),
@@ -119,23 +115,21 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                   requestingCode: _requestingLoginCode,
                   submitting: sessionState.submitting,
                   onChanged: () => setState(() {}),
-                  onRequestCode: _loginPhoneController.text.trim().length >=
-                              11 &&
+                  onRequestCode:
+                      _loginPhoneController.text.trim().length >= 11 &&
                           !_requestingLoginCode &&
                           !sessionState.submitting
                       ? () =>
-                          _requestLoginCode(_loginPhoneController.text.trim())
+                            _requestLoginCode(_loginPhoneController.text.trim())
                       : null,
                   onSwitchMethod: (method) =>
                       setState(() => _loginMethod = method),
                   onRegisterTap: () =>
                       setState(() => _mode = _AuthMode.register),
-                  onOpenTerms: () => _openLegalDocument(
-                    '/static/legal/user-agreement.html',
-                  ),
-                  onOpenPrivacy: () => _openLegalDocument(
-                    '/static/legal/privacy-policy.html',
-                  ),
+                  onOpenTerms: () =>
+                      _openLegalDocument('/static/legal/user-agreement.html'),
+                  onOpenPrivacy: () =>
+                      _openLegalDocument('/static/legal/privacy-policy.html'),
                   acceptedLegal: _acceptedLegal,
                   onAcceptedLegalChanged: (value) =>
                       setState(() => _acceptedLegal = value),
@@ -195,19 +189,15 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       return;
     }
 
-    await sessionNotifier.loginWithSms(
-      phoneNumber: phone,
-      smsCode: smsCode,
-    );
+    await sessionNotifier.loginWithSms(phoneNumber: phone, smsCode: smsCode);
   }
 
   Future<bool> _requestLoginCode(String phone) async {
     setState(() => _requestingLoginCode = true);
     try {
-      final result = await ref.read(authRepositoryProvider).requestSmsCode(
-            phoneNumber: phone,
-            purpose: 'login',
-          );
+      final result = await ref
+          .read(authRepositoryProvider)
+          .requestSmsCode(phoneNumber: phone, purpose: 'login');
       if (!mounted) return false;
       setState(() {
         _loginDebugCode = result.debugCode;
@@ -232,10 +222,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   Future<bool> _requestRegisterCode(String phone) async {
     setState(() => _requestingRegisterCode = true);
     try {
-      final result = await ref.read(authRepositoryProvider).requestSmsCode(
-            phoneNumber: phone,
-            purpose: 'register',
-          );
+      final result = await ref
+          .read(authRepositoryProvider)
+          .requestSmsCode(phoneNumber: phone, purpose: 'register');
       if (!mounted) return false;
       setState(() {
         _registerDebugCode = result.debugCode;
@@ -258,8 +247,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _openLegalDocument(String path) async {
@@ -320,20 +310,12 @@ class _RegisterView extends StatelessWidget {
   Widget build(BuildContext context) {
     return _AuthFrame(
       topBar: const _TopBar(),
-      hero: const _GradientHeroCard(
-        eyebrow: '免费体验',
-        title: '新用户注册 ✨',
-        subtitle: '用 AI 为孩子生成温柔又好玩的睡前故事',
-      ),
       form: _SoftPanel(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _PanelTitle(
-              title: '新用户注册',
-              subtitle: '加入快乐鱼群',
-            ),
-            SizedBox(height: 12.h),
+            const _PanelTitle(title: '新用户注册', subtitle: '用手机号创建账号，开始听故事'),
+            SizedBox(height: 10.h),
             _ModernInput(
               label: '手机号',
               hint: '输入手机号',
@@ -346,14 +328,14 @@ class _RegisterView extends StatelessWidget {
               ],
               onChanged: onChanged,
             ),
-            SizedBox(height: 9.h),
+            SizedBox(height: 8.h),
             _CodeInputRow(
               controller: codeController,
               requesting: requestingCode,
               onChanged: onChanged,
               onRequestCode: onRequestCode,
             ),
-            SizedBox(height: 9.h),
+            SizedBox(height: 8.h),
             _ModernInput(
               label: '设置密码',
               hint: '至少 6 位密码',
@@ -363,31 +345,27 @@ class _RegisterView extends StatelessWidget {
               onChanged: onChanged,
             ),
             if (debugCode != null) ...[
-              SizedBox(height: 8.h),
+              SizedBox(height: 7.h),
               _DebugCodeBadge(code: debugCode!),
             ],
-            SizedBox(height: 12.h),
+            SizedBox(height: 10.h),
             _GradientButton(
               label: '立即注册',
               loading: submitting,
               onPressed: onSubmit,
             ),
-            SizedBox(height: 7.h),
+            SizedBox(height: 6.h),
             _LegalConsentText(
               accepted: acceptedLegal,
               onAcceptedChanged: onAcceptedLegalChanged,
               onOpenTerms: onOpenTerms,
               onOpenPrivacy: onOpenPrivacy,
             ),
-            SizedBox(height: 3.h),
-            _TextSwitchButton(
-              label: '已有账号？立即登录',
-              onPressed: onLoginTap,
-            ),
+            SizedBox(height: 2.h),
+            _TextSwitchButton(label: '已有账号？立即登录', onPressed: onLoginTap),
           ],
         ),
       ),
-      footer: const _ParentSafetyCard(),
     );
   }
 }
@@ -434,20 +412,12 @@ class _LoginView extends StatelessWidget {
     final isSms = method == _LoginMethod.sms;
     return _AuthFrame(
       topBar: const _TopBar(),
-      hero: const _GradientHeroCard(
-        eyebrow: '欢迎回来',
-        title: '欢迎回来！',
-        subtitle: '继续上次的奇幻阅读冒险',
-      ),
       form: _SoftPanel(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _PanelTitle(
-              title: '回到故事书架',
-              subtitle: '确认身份后继续收藏、创作和听故事',
-            ),
-            SizedBox(height: 12.h),
+            const _PanelTitle(title: '登录', subtitle: '继续收藏、创作和听故事'),
+            SizedBox(height: 10.h),
             _ModernInput(
               label: '手机号',
               hint: '输入手机号',
@@ -460,7 +430,7 @@ class _LoginView extends StatelessWidget {
               ],
               onChanged: onChanged,
             ),
-            SizedBox(height: 9.h),
+            SizedBox(height: 8.h),
             if (isSms)
               _CodeInputRow(
                 controller: codeController,
@@ -478,27 +448,24 @@ class _LoginView extends StatelessWidget {
                 onChanged: onChanged,
               ),
             if (isSms && debugCode != null) ...[
-              SizedBox(height: 8.h),
+              SizedBox(height: 7.h),
               _DebugCodeBadge(code: debugCode!),
             ],
-            SizedBox(height: 12.h),
+            SizedBox(height: 10.h),
             _GradientButton(
               label: '登录',
               loading: submitting,
               onPressed: onSubmit,
             ),
-            SizedBox(height: 7.h),
+            SizedBox(height: 6.h),
             _LegalConsentText(
               accepted: acceptedLegal,
               onAcceptedChanged: onAcceptedLegalChanged,
               onOpenTerms: onOpenTerms,
               onOpenPrivacy: onOpenPrivacy,
             ),
-            SizedBox(height: 3.h),
-            _TextSwitchButton(
-              label: '新用户注册',
-              onPressed: onRegisterTap,
-            ),
+            SizedBox(height: 2.h),
+            _TextSwitchButton(label: '新用户注册', onPressed: onRegisterTap),
           ],
         ),
       ),
@@ -511,17 +478,11 @@ class _LoginView extends StatelessWidget {
 }
 
 class _AuthFrame extends StatelessWidget {
-  const _AuthFrame({
-    required this.topBar,
-    required this.hero,
-    required this.form,
-    required this.footer,
-  });
+  const _AuthFrame({required this.topBar, required this.form, this.footer});
 
   final Widget topBar;
-  final Widget hero;
   final Widget form;
-  final Widget footer;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -532,28 +493,21 @@ class _AuthFrame extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Padding(
-              padding: EdgeInsets.fromLTRB(28.w, 14.h, 28.w, 14.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  topBar,
-                  SizedBox(height: 12.h),
-                  hero,
-                  SizedBox(height: 12.h),
-                  form,
-                  SizedBox(height: 10.h),
-                  footer,
-                  SizedBox(height: 8.h),
-                  Text(
-                    '© 2024 乐鱼故事. 为孩子的梦想保驾护航.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: const Color(0xFFB8B3C5),
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
+              padding: EdgeInsets.fromLTRB(24.w, 12.h, 24.w, 14.h),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 420.w),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      topBar,
+                      SizedBox(height: 18.h),
+                      form,
+                      if (footer != null) ...[SizedBox(height: 14.h), footer!],
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -571,8 +525,8 @@ class _TopBar extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: 46.w,
-          height: 46.w,
+          width: 44.w,
+          height: 44.w,
           child: Image.asset(
             'assets/images/joyfish_logo.png',
             fit: BoxFit.contain,
@@ -586,8 +540,8 @@ class _TopBar extends StatelessWidget {
               Text(
                 '乐鱼故事',
                 style: TextStyle(
-                  color: const Color(0xFF2E3445),
-                  fontSize: 22.sp,
+                  color: const Color(0xFF2C251B),
+                  fontSize: 21.sp,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -595,7 +549,7 @@ class _TopBar extends StatelessWidget {
               Text(
                 '给小朋友的 AI 故事乐园',
                 style: TextStyle(
-                  color: const Color(0xFF778197),
+                  color: const Color(0xFF8E765D),
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w700,
                 ),
@@ -608,128 +562,6 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-class _GradientHeroCard extends StatelessWidget {
-  const _GradientHeroCard({
-    required this.eyebrow,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final String eyebrow;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 132.h,
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28.r),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF4F8DF6), Color(0xFF7757F6), Color(0xFFFF6AA2)],
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x267757F6),
-            blurRadius: 26,
-            offset: Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            right: -30.w,
-            top: -28.h,
-            child: _SoftBlob(size: 96.w, color: const Color(0xFFFFC33D)),
-          ),
-          Positioned(
-            right: 6.w,
-            bottom: -38.h,
-            child: _SoftBlob(size: 82.w, color: const Color(0xFFFF8BC7)),
-          ),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.topLeft,
-            child: SizedBox(
-              width: 230.w,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    eyebrow,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.82),
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  SizedBox(height: 5.h),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 23.sp,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  SizedBox(height: 5.h),
-                  Text(
-                    subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 13.sp,
-                      height: 1.35,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            right: 18.w,
-            top: 18.h,
-            child: Icon(
-              Icons.auto_awesome_rounded,
-              color: const Color(0xFFFFF176),
-              size: 28.sp,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SoftBlob extends StatelessWidget {
-  const _SoftBlob({required this.size, required this.color});
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: -0.25,
-      child: Container(
-        width: size,
-        height: size * 0.72,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.84),
-          borderRadius: BorderRadius.circular(size * 0.32),
-        ),
-      ),
-    );
-  }
-}
-
 class _SoftPanel extends StatelessWidget {
   const _SoftPanel({required this.child});
 
@@ -738,15 +570,16 @@ class _SoftPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20.w, 18.h, 20.w, 10.h),
+      padding: EdgeInsets.fromLTRB(18.w, 18.h, 18.w, 10.h),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32.r),
+        color: Colors.white.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(26.r),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.60)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x120F172A),
-            blurRadius: 24,
-            offset: Offset(0, 10),
+            color: Color(0x1A8E5A24),
+            blurRadius: 22,
+            offset: Offset(0, 12),
           ),
         ],
       ),
@@ -769,8 +602,8 @@ class _PanelTitle extends StatelessWidget {
         Text(
           title,
           style: TextStyle(
-            color: const Color(0xFF2D3446),
-            fontSize: 23.sp,
+            color: const Color(0xFF2C251B),
+            fontSize: 22.sp,
             fontWeight: FontWeight.w900,
           ),
         ),
@@ -778,8 +611,8 @@ class _PanelTitle extends StatelessWidget {
         Text(
           subtitle,
           style: TextStyle(
-            color: const Color(0xFF768299),
-            fontSize: 14.sp,
+            color: const Color(0xFF8E765D),
+            fontSize: 13.sp,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -815,7 +648,7 @@ class _ModernInput extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _FieldLabel(label),
-        SizedBox(height: 5.h),
+        SizedBox(height: 4.h),
         TextField(
           controller: controller,
           keyboardType: keyboardType,
@@ -824,13 +657,10 @@ class _ModernInput extends StatelessWidget {
           onChanged: (_) => onChanged(),
           style: TextStyle(
             fontSize: 16.sp,
-            color: const Color(0xFF2D3446),
+            color: const Color(0xFF2C251B),
             fontWeight: FontWeight.w800,
           ),
-          decoration: _fieldDecoration(
-            hint: hint,
-            icon: icon,
-          ),
+          decoration: _fieldDecoration(hint: hint, icon: icon),
         ),
       ],
     );
@@ -856,7 +686,7 @@ class _CodeInputRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _FieldLabel('手机验证码'),
-        SizedBox(height: 5.h),
+        SizedBox(height: 4.h),
         Row(
           children: [
             Expanded(
@@ -882,14 +712,14 @@ class _CodeInputRow extends StatelessWidget {
             SizedBox(width: 10.w),
             SizedBox(
               width: 106.w,
-              height: 48.h,
+              height: 46.h,
               child: FilledButton(
                 onPressed: onRequestCode,
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF7357F6),
-                  disabledBackgroundColor: const Color(0xFFE4E1EB),
+                  backgroundColor: const Color(0xFF327E71),
+                  disabledBackgroundColor: const Color(0xFFE5DED2),
                   foregroundColor: Colors.white,
-                  disabledForegroundColor: const Color(0xFFAAA4B8),
+                  disabledForegroundColor: const Color(0xFF9C8B74),
                   elevation: 0,
                   padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
@@ -931,8 +761,8 @@ class _FieldLabel extends StatelessWidget {
     return Text(
       label,
       style: TextStyle(
-        color: const Color(0xFF303748),
-        fontSize: 14.sp,
+        color: const Color(0xFF2C251B),
+        fontSize: 13.sp,
         fontWeight: FontWeight.w900,
       ),
     );
@@ -947,15 +777,15 @@ InputDecoration _fieldDecoration({
     isDense: true,
     hintText: hint,
     hintStyle: TextStyle(
-      color: const Color(0xFFB8B2C5),
-      fontSize: 15.sp,
+      color: const Color(0xFFB8A58A),
+      fontSize: 14.sp,
       fontWeight: FontWeight.w800,
     ),
-    prefixIcon: Icon(icon, color: const Color(0xFF778197), size: 24.sp),
-    prefixIconConstraints: BoxConstraints(minWidth: 42.w, minHeight: 48.h),
+    prefixIcon: Icon(icon, color: const Color(0xFF8E765D), size: 22.sp),
+    prefixIconConstraints: BoxConstraints(minWidth: 40.w, minHeight: 46.h),
     filled: true,
-    fillColor: const Color(0xFFF6F4FA),
-    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+    fillColor: const Color(0xFFFFF8EC),
+    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(24.r),
       borderSide: BorderSide.none,
@@ -966,7 +796,7 @@ InputDecoration _fieldDecoration({
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(24.r),
-      borderSide: const BorderSide(color: Color(0xFF7357F6), width: 1.7),
+      borderSide: const BorderSide(color: Color(0xFFFF805D), width: 1.7),
     ),
   );
 }
@@ -990,12 +820,12 @@ class _GradientButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF7A5AF8), Color(0xFF6B4DF3)],
+            colors: [Color(0xFFFFA05D), Color(0xFF327E71)],
           ),
           borderRadius: BorderRadius.circular(28.r),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x287A5AF8),
+              color: Color(0x2EA96F2C),
               blurRadius: 20,
               offset: Offset(0, 10),
             ),
@@ -1051,7 +881,7 @@ class _TextSwitchButton extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: const Color(0xFF7357F6),
+          color: const Color(0xFF327E71),
           fontSize: 15.sp,
           fontWeight: FontWeight.w900,
         ),
@@ -1082,10 +912,10 @@ class _LegalConsentText extends StatelessWidget {
       height: 1.35,
     );
     final linkStyle = baseStyle.copyWith(
-      color: const Color(0xFF7357F6),
+      color: const Color(0xFF327E71),
       fontWeight: FontWeight.w900,
       decoration: TextDecoration.underline,
-      decorationColor: const Color(0xFF7357F6),
+      decorationColor: const Color(0xFF327E71),
     );
 
     return Row(
@@ -1099,7 +929,7 @@ class _LegalConsentText extends StatelessWidget {
             onChanged: (value) => onAcceptedChanged(value ?? false),
             visualDensity: VisualDensity.compact,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            activeColor: const Color(0xFF7357F6),
+            activeColor: const Color(0xFF327E71),
             side: const BorderSide(color: Color(0xFFC8C4D4), width: 1.4),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(5.r),
@@ -1169,84 +999,17 @@ class _DebugCodeBadge extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
         decoration: BoxDecoration(
-          color: const Color(0xFFEDE8FF),
+          color: const Color(0xFFFFE7C7),
           borderRadius: BorderRadius.circular(16.r),
         ),
         child: Text(
           '调试验证码 $code',
           style: TextStyle(
-            color: const Color(0xFF7357F6),
+            color: const Color(0xFF715326),
             fontSize: 12.sp,
             fontWeight: FontWeight.w800,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ParentSafetyCard extends StatelessWidget {
-  const _ParentSafetyCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 14.h),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.86),
-        borderRadius: BorderRadius.circular(24.r),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x100F172A),
-            blurRadius: 22,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48.w,
-            height: 48.w,
-            decoration: const BoxDecoration(
-              color: Color(0xFFEAFBDF),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.shield_rounded,
-              color: const Color(0xFF49A34A),
-              size: 25.sp,
-            ),
-          ),
-          SizedBox(width: 14.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '家长验证保护',
-                  style: TextStyle(
-                    color: const Color(0xFF2D3446),
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                SizedBox(height: 3.h),
-                Text(
-                  '新账户注册需成人确认，保护儿童隐私安全。',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: const Color(0xFF768299),
-                    fontSize: 12.sp,
-                    height: 1.28,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1263,42 +1026,43 @@ class _OtherLoginMethods extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final alternative =
-        method == _LoginMethod.sms ? _LoginMethod.password : _LoginMethod.sms;
+    final alternative = method == _LoginMethod.sms
+        ? _LoginMethod.password
+        : _LoginMethod.sms;
     final option = alternative == _LoginMethod.password
         ? const _LoginMethodOption(
             method: _LoginMethod.password,
             label: '密码',
             icon: Icons.lock_outline_rounded,
-            color: Color(0xFF7357F6),
+            color: Color(0xFFFF805D),
           )
         : const _LoginMethodOption(
             method: _LoginMethod.sms,
             label: '短信',
             icon: Icons.sms_outlined,
-            color: Color(0xFF49A34A),
+            color: Color(0xFF327E71),
           );
 
     return Column(
       children: [
         Row(
           children: [
-            const Expanded(child: Divider(color: Color(0xFFE0DDE8))),
+            const Expanded(child: Divider(color: Color(0xFFEADCC7))),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
               child: Text(
                 '其他方式登录',
                 style: TextStyle(
-                  color: const Color(0xFF2D3446),
-                  fontSize: 14.sp,
+                  color: const Color(0xFF8E765D),
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ),
-            const Expanded(child: Divider(color: Color(0xFFE0DDE8))),
+            const Expanded(child: Divider(color: Color(0xFFEADCC7))),
           ],
         ),
-        SizedBox(height: 12.h),
+        SizedBox(height: 10.h),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1328,10 +1092,7 @@ class _LoginMethodOption {
 }
 
 class _LoginMethodBubble extends StatelessWidget {
-  const _LoginMethodBubble({
-    required this.option,
-    required this.onTap,
-  });
+  const _LoginMethodBubble({required this.option, required this.onTap});
 
   final _LoginMethodOption option;
   final VoidCallback onTap;
@@ -1345,20 +1106,21 @@ class _LoginMethodBubble extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(30.r),
         child: Container(
-          width: 58.w,
-          height: 58.w,
+          width: 52.w,
+          height: 52.w,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFFFFF8EC),
             shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFFEADCC7)),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x140F172A),
-                blurRadius: 18,
-                offset: Offset(0, 8),
+                color: Color(0x128E5A24),
+                blurRadius: 14,
+                offset: Offset(0, 6),
               ),
             ],
           ),
-          child: Icon(option.icon, color: option.color, size: 27.sp),
+          child: Icon(option.icon, color: option.color, size: 24.sp),
         ),
       ),
     );

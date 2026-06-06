@@ -17,10 +17,12 @@ class ProfilePage extends ConsumerWidget {
     super.key,
     required this.onManageChildren,
     required this.onManageVoice,
+    this.sheetMode = false,
   });
 
   final VoidCallback onManageChildren;
   final VoidCallback onManageVoice;
+  final bool sheetMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,7 +47,12 @@ class ProfilePage extends ConsumerWidget {
     });
 
     return ListView(
-      padding: EdgeInsets.fromLTRB(22.w, 10.h, 22.w, 140.h),
+      padding: EdgeInsets.fromLTRB(
+        22.w,
+        sheetMode ? 6.h : 10.h,
+        22.w,
+        sheetMode ? 36.h : 140.h,
+      ),
       children: [
         JoyfishPageHeader(
           title: '会员中心',
@@ -85,10 +92,9 @@ class ProfilePage extends ConsumerWidget {
         Center(
           child: Text(
             '选择你的魔法计划',
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(color: AppTheme.olive),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: AppTheme.olive),
           ),
         ),
         SizedBox(height: 22.h),
@@ -96,31 +102,31 @@ class ProfilePage extends ConsumerWidget {
           icon: Icons.calendar_month_rounded,
           title: '连续包月会员',
           subtitle: '随时取消，轻松开启',
-          price: monthlyProduct?.price ?? '¥16',
+          price: monthlyProduct?.price ?? '¥12',
           unit: '/月',
           button: isVip ? '续订包月' : '立即订阅',
           highlighted: false,
           isLoading: subscriptionState.purchasing,
           onPressed: subscriptionState.storeAvailable
               ? () => ref
-                  .read(subscriptionControllerProvider.notifier)
-                  .buy(joyfishMonthlyProductId)
+                    .read(subscriptionControllerProvider.notifier)
+                    .buy(joyfishMonthlyProductId)
               : null,
         ),
         SizedBox(height: 24.h),
         _PlanCard(
           icon: Icons.workspace_premium_rounded,
           title: '年度探险家会员',
-          subtitle: '平均每月仅需 ¥12.5',
-          price: annualProduct?.price ?? '¥150',
+          subtitle: '平均每月仅需 ¥8.2',
+          price: annualProduct?.price ?? '¥98',
           unit: '/年',
           button: '立即开启一整年',
           highlighted: true,
           isLoading: subscriptionState.purchasing,
           onPressed: subscriptionState.storeAvailable
               ? () => ref
-                  .read(subscriptionControllerProvider.notifier)
-                  .buy(joyfishAnnualProductId)
+                    .read(subscriptionControllerProvider.notifier)
+                    .buy(joyfishAnnualProductId)
               : null,
         ),
         SizedBox(height: 14.h),
@@ -131,8 +137,8 @@ class ProfilePage extends ConsumerWidget {
           icon: const Icon(Icons.restore_rounded, color: AppTheme.skyDeep),
           onPressed: subscriptionState.storeAvailable
               ? () => ref
-                  .read(subscriptionControllerProvider.notifier)
-                  .restorePurchases()
+                    .read(subscriptionControllerProvider.notifier)
+                    .restorePurchases()
               : null,
         ),
         SizedBox(height: 26.h),
@@ -205,11 +211,12 @@ class _StatusCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: 14.h),
-          Text('当前状态',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: AppTheme.skyDeep)),
+          Text(
+            '当前状态',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppTheme.skyDeep),
+          ),
           SizedBox(height: 8.h),
           Text(
             isVip ? _tierLabel(membershipTier) : '普通小读者',
@@ -219,14 +226,16 @@ class _StatusCard extends StatelessWidget {
           Text(
             '${_maskPhone(phone)} · 已创作 $storyCount 篇故事${_expiryLabel()}',
             textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: AppTheme.skyDeep),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppTheme.skyDeep),
           ),
           SizedBox(height: 20.h),
-          Icon(Icons.emoji_events_rounded,
-              color: const Color(0xFFB7C6EE), size: 58.sp),
+          Icon(
+            Icons.emoji_events_rounded,
+            color: const Color(0xFFB7C6EE),
+            size: 58.sp,
+          ),
         ],
       ),
     );
@@ -285,8 +294,10 @@ class _BenefitCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 backgroundColor: Colors.white,
-                child: Icon(icon,
-                    color: positive ? AppTheme.olive : AppTheme.mutedInk),
+                child: Icon(
+                  icon,
+                  color: positive ? AppTheme.olive : AppTheme.mutedInk,
+                ),
               ),
               SizedBox(width: 14.w),
               Text(title, style: Theme.of(context).textTheme.headlineMedium),
@@ -363,14 +374,17 @@ class _PlanCard extends StatelessWidget {
             text: TextSpan(
               text: price,
               style: TextStyle(
-                  color: AppTheme.olive,
-                  fontSize: 34.sp,
-                  fontWeight: FontWeight.w900),
+                color: AppTheme.olive,
+                fontSize: 34.sp,
+                fontWeight: FontWeight.w900,
+              ),
               children: [
                 TextSpan(
                   text: unit,
-                  style:
-                      TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -380,8 +394,9 @@ class _PlanCard extends StatelessWidget {
             text: button,
             height: 54.h,
             isLoading: isLoading,
-            backgroundColor:
-                highlighted ? AppTheme.olive : AppTheme.purpleLight,
+            backgroundColor: highlighted
+                ? AppTheme.olive
+                : AppTheme.purpleLight,
             textColor: highlighted ? Colors.white : AppTheme.skyDeep,
             onPressed: onPressed,
           ),
@@ -392,8 +407,11 @@ class _PlanCard extends StatelessWidget {
 }
 
 class _MiniAction extends StatelessWidget {
-  const _MiniAction(
-      {required this.icon, required this.title, required this.onTap});
+  const _MiniAction({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String title;

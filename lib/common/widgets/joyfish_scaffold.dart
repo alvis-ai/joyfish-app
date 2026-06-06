@@ -22,11 +22,7 @@ class JoyfishScaffold extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFF8F7FC),
-            Color(0xFFF2F0FB),
-            Color(0xFFFFF8EE),
-          ],
+          colors: [Color(0xFFFFF7E8), Color(0xFFFFEBC3), Color(0xFFEAF7E0)],
         ),
       ),
       child: Stack(
@@ -40,8 +36,8 @@ class JoyfishScaffold extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF7357F6).withValues(alpha: 0.12),
-                    const Color(0xFFFFC53D).withValues(alpha: 0.06),
+                    const Color(0xFFFFC857).withValues(alpha: 0.26),
+                    const Color(0xFFFF805D).withValues(alpha: 0.10),
                   ],
                 ),
                 borderRadius: BorderRadius.vertical(
@@ -57,14 +53,12 @@ class JoyfishScaffold extends StatelessWidget {
               width: 140.w,
               height: 140.w,
               decoration: BoxDecoration(
-                color: const Color(0xFFFF7E9D).withValues(alpha: 0.08),
+                color: const Color(0xFFA9D66F).withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(42.r),
               ),
             ),
           ),
-          Positioned.fill(
-            child: useSafeArea ? SafeArea(child: child) : child,
-          ),
+          Positioned.fill(child: useSafeArea ? SafeArea(child: child) : child),
         ],
       ),
     );
@@ -104,13 +98,14 @@ class JoyfishCard extends StatelessWidget {
         color: backgroundColor ?? Colors.white.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(radius ?? 26.r),
         border:
-            border ?? Border.all(color: const Color(0xFFF1EDF7), width: 1.4),
-        boxShadow: shadow ??
+            border ?? Border.all(color: const Color(0xFFF0D8B2), width: 1.1),
+        boxShadow:
+            shadow ??
             const [
               BoxShadow(
-                color: Color(0x120F172A),
-                blurRadius: 28,
-                offset: Offset(0, 14),
+                color: Color(0x18A96F2C),
+                blurRadius: 24,
+                offset: Offset(0, 12),
               ),
             ],
       ),
@@ -139,14 +134,14 @@ class JoyfishPageHeader extends StatelessWidget {
       children: [
         leading ??
             SizedBox(
-              width: 48.w,
-              height: 48.w,
+              width: 48.r,
+              height: 48.r,
               child: Image.asset(
                 'assets/images/joyfish_logo.png',
                 fit: BoxFit.contain,
               ),
             ),
-        SizedBox(width: 12.w),
+        SizedBox(width: 12.r),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +149,7 @@ class JoyfishPageHeader extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  color: const Color(0xFF2E3445),
+                  color: AppTheme.ink,
                   fontSize: 22.sp,
                   fontWeight: FontWeight.w900,
                 ),
@@ -163,7 +158,7 @@ class JoyfishPageHeader extends StatelessWidget {
               Text(
                 subtitle,
                 style: TextStyle(
-                  color: const Color(0xFF778197),
+                  color: AppTheme.mutedInk,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w700,
                 ),
@@ -197,10 +192,10 @@ class JoyfishIconBubble extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(24.r),
         child: Ink(
-          width: size ?? 44.w,
-          height: size ?? 44.w,
+          width: size ?? 44.r,
+          height: size ?? 44.r,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFFFFF9EF),
             shape: BoxShape.circle,
             boxShadow: const [
               BoxShadow(
@@ -210,7 +205,7 @@ class JoyfishIconBubble extends StatelessWidget {
               ),
             ],
           ),
-          child: Icon(icon, color: const Color(0xFF6F7A91), size: 22.sp),
+          child: Icon(icon, color: AppTheme.olive, size: 22.sp),
         ),
       ),
     );

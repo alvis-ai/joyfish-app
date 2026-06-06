@@ -43,8 +43,8 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.gradient,
     this.borderSide,
-  })  : backgroundColor = null,
-        textColor = null;
+  }) : backgroundColor = null,
+       textColor = null;
 
   const AppButton.secondary({
     super.key,
@@ -58,8 +58,8 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.gradient,
     this.borderSide,
-  })  : backgroundColor = Colors.white,
-        textColor = const Color(0xFF7A39D8);
+  }) : backgroundColor = Colors.white,
+       textColor = const Color(0xFF327E71);
 
   const AppButton.text({
     super.key,
@@ -73,8 +73,8 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.gradient,
     this.borderSide,
-  })  : backgroundColor = Colors.transparent,
-        textColor = null;
+  }) : backgroundColor = Colors.transparent,
+       textColor = null;
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +100,9 @@ class AppButton extends StatelessWidget {
               color: resolvedGradient == null ? resolvedColor : null,
               gradient: resolvedGradient,
               borderRadius: radius,
-              border: borderSide == null ? null : Border.fromBorderSide(borderSide!),
+              border: borderSide == null
+                  ? null
+                  : Border.fromBorderSide(borderSide!),
               boxShadow: enabled && backgroundColor != Colors.transparent
                   ? const [
                       BoxShadow(
@@ -113,36 +115,42 @@ class AppButton extends StatelessWidget {
             ),
             child: Center(
               child: Padding(
-                padding: padding ?? EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                padding:
+                    padding ??
+                    EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
                 child: isLoading
                     ? SizedBox(
                         width: 20.w,
                         height: 20.h,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(textColor ?? Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            textColor ?? Colors.white,
+                          ),
                         ),
                       )
-                    : Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (icon != null) ...[
-                            icon!,
-                            SizedBox(width: 8.w),
-                          ],
-                          Text(
-                            text,
-                            style: textStyle.copyWith(
-                              color: textColor ??
-                                  (backgroundColor == Colors.transparent ||
-                                          borderSide != null ||
-                                          backgroundColor == Colors.white
-                                      ? theme.colorScheme.primary
-                                      : Colors.white),
+                    : FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (icon != null) ...[icon!, SizedBox(width: 8.r)],
+                            Text(
+                              text,
+                              maxLines: 1,
+                              style: textStyle.copyWith(
+                                color:
+                                    textColor ??
+                                    (backgroundColor == Colors.transparent ||
+                                            borderSide != null ||
+                                            backgroundColor == Colors.white
+                                        ? theme.colorScheme.primary
+                                        : Colors.white),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
               ),
             ),

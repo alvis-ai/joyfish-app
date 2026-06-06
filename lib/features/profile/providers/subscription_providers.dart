@@ -4,11 +4,12 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
+import '../../../core/log/app_logger.dart';
 import '../../../core/network/api_exception.dart';
 import '../../auth/providers/session_providers.dart';
 
-const joyfishMonthlyProductId = 'com.alvis.joyfish.vip.monthly';
-const joyfishAnnualProductId = 'com.alvis.joyfish.vip.annual';
+const joyfishMonthlyProductId = 'com.alvis.joyfish.vip1.monthly';
+const joyfishAnnualProductId = 'com.alvis.joyfish.vip1.annual';
 const joyfishSubscriptionProductIds = <String>{
   joyfishMonthlyProductId,
   joyfishAnnualProductId,
@@ -16,8 +17,8 @@ const joyfishSubscriptionProductIds = <String>{
 
 final subscriptionControllerProvider =
     StateNotifierProvider<SubscriptionController, SubscriptionState>((ref) {
-  return SubscriptionController(ref);
-});
+      return SubscriptionController(ref);
+    });
 
 class SubscriptionState {
   const SubscriptionState({
@@ -105,11 +106,17 @@ class SubscriptionController extends StateNotifier<SubscriptionState> {
       return;
     }
 
-    final response =
-        await _iap.queryProductDetails(joyfishSubscriptionProductIds);
+    final response = await _iap.queryProductDetails(
+      joyfishSubscriptionProductIds,
+    );
     final products = {
       for (final product in response.productDetails) product.id: product,
     };
+    AppLogger.info(
+      'StoreKit products loaded: requested=$joyfishSubscriptionProductIds, '
+      'found=${products.keys.toList()}, notFound=${response.notFoundIDs}, '
+      'error=${response.error?.message}',
+    );
     state = state.copyWith(
       loading: false,
       storeAvailable: true,
@@ -134,10 +141,7 @@ class SubscriptionController extends StateNotifier<SubscriptionState> {
     final purchaseParam = PurchaseParam(productDetails: product);
     final started = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
     if (!started) {
-      state = state.copyWith(
-        purchasing: false,
-        error: '无法发起订阅，请稍后重试',
-      );
+      state = state.copyWith(purchasing: false, error: '无法发起订阅，请稍后重试');
     }
   }
 

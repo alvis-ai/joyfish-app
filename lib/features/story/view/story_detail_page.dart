@@ -7,10 +7,8 @@ import 'package:just_audio/just_audio.dart';
 
 import '../../../common/themes/app_theme.dart';
 import '../../../common/utils/story_presenter.dart';
-import '../../../common/widgets/app_button.dart';
 import '../../../common/widgets/joyfish_cached_image.dart';
 import '../../../common/widgets/joyfish_scaffold.dart';
-import '../../../common/widgets/story_cards.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/story_models.dart';
@@ -45,8 +43,9 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
   @override
   void initState() {
     super.initState();
-    _playerStateSubscription =
-        _player.playerStateStream.listen(_syncPositionTicker);
+    _playerStateSubscription = _player.playerStateStream.listen(
+      _syncPositionTicker,
+    );
     _future = _loadStory();
   }
 
@@ -207,10 +206,9 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                 child: Text(
                   '故事加载失败：${userFacingErrorMessage(snapshot.error ?? Exception('unknown'))}',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge
-                      ?.copyWith(color: AppTheme.mutedInk),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: AppTheme.mutedInk),
                 ),
               ),
             );
@@ -218,119 +216,77 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
 
           final story = snapshot.data!;
           final visual = storyVisualOf(story);
-          final coverUrl =
-              AppConfig.instance.resolveMediaUrl(story.coverImageUrl);
+          final coverUrl = AppConfig.instance.resolveMediaUrl(
+            story.coverImageUrl,
+          );
           final fallbackDuration = Duration(minutes: story.readingMinutes ?? 8);
 
           return Stack(
             children: [
               Positioned.fill(
-                child: Opacity(
-                  opacity: 0.18,
-                  child: GridPaper(
-                    color: AppTheme.purpleLight,
-                    interval: 22.w,
-                    divisions: 1,
-                    subdivisions: 1,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFFFFE1AC).withValues(alpha: 0.48),
+                        const Color(0xFFFFF8EC).withValues(alpha: 0.24),
+                        const Color(0xFFEAF7E0).withValues(alpha: 0.34),
+                      ],
+                    ),
                   ),
                 ),
               ),
               ListView(
-                padding: EdgeInsets.fromLTRB(26.w, 10.h, 26.w, 128.h),
+                padding: EdgeInsets.fromLTRB(22.w, 8.h, 22.w, 128.h),
                 children: [
                   _StoryTopBar(onBack: () => context.router.maybePop()),
-                  SizedBox(height: 26.h),
+                  SizedBox(height: 18.h),
                   AspectRatio(
-                    aspectRatio: joyfishGoldenRatio,
+                    aspectRatio: 16 / 9,
                     child: JoyfishCard(
                       padding: EdgeInsets.zero,
-                      radius: 30.r,
+                      radius: 24.r,
+                      border: Border.all(
+                        color: const Color(0xFFFFF3DF),
+                        width: 1.2,
+                      ),
+                      shadow: const [
+                        BoxShadow(
+                          color: Color(0x247E5730),
+                          blurRadius: 18,
+                          offset: Offset(0, 10),
+                        ),
+                      ],
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30.r),
+                        borderRadius: BorderRadius.circular(24.r),
                         child: _DetailCover(visual: visual, imageUrl: coverUrl),
                       ),
                     ),
                   ),
-                  SizedBox(height: 20.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      5,
-                      (index) => Container(
-                        width: index == 0 ? 14.w : 10.w,
-                        height: index == 0 ? 14.w : 10.w,
-                        margin: EdgeInsets.symmetric(horizontal: 7.w),
-                        decoration: BoxDecoration(
-                          color: index == 0
-                              ? AppTheme.peach
-                              : const Color(0xFFD8D0BD),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 26.h),
+                  SizedBox(height: 22.h),
                   Text(
                     story.title,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineLarge
-                        ?.copyWith(color: AppTheme.skyDeep),
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: AppTheme.skyDeep,
+                      height: 1.12,
+                    ),
                   ),
-                  SizedBox(height: 20.h),
-                  JoyfishCard(
-                    padding: EdgeInsets.all(24.w),
-                    child: Text(
+                  SizedBox(height: 12.h),
+                  if ((story.summary ?? '').isNotEmpty ||
+                      _firstParagraph(story.bodyMd).isNotEmpty)
+                    Text(
                       story.summary?.isNotEmpty == true
                           ? story.summary!
                           : _firstParagraph(story.bodyMd),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(height: 1.7),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        height: 1.55,
+                        color: AppTheme.olive,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 30.h),
-                  Text(
-                    '选一个好听的声音吧',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(color: AppTheme.olive),
-                  ),
-                  SizedBox(height: 18.h),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    childAspectRatio: 0.86,
-                    crossAxisSpacing: 22.w,
-                    mainAxisSpacing: 22.h,
-                    children: const [
-                      _VoiceCard(
-                          icon: Icons.man_rounded,
-                          label: '爸爸的声音',
-                          selected: false),
-                      _VoiceCard(
-                          icon: Icons.woman_rounded,
-                          label: '妈妈的声音',
-                          selected: true),
-                      _VoiceCard(
-                          icon: Icons.smart_toy_rounded,
-                          label: '小机器人',
-                          selected: false),
-                      _VoiceCard(
-                          icon: Icons.auto_fix_high_rounded,
-                          label: '仙女姐姐',
-                          selected: false),
-                    ],
-                  ),
                   if (_audioLoadError != null) ...[
-                    SizedBox(height: 16.h),
+                    SizedBox(height: 18.h),
                     JoyfishCard(
                       padding: EdgeInsets.symmetric(
                         horizontal: 18.w,
@@ -348,9 +304,7 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                           Expanded(
                             child: Text(
                               _audioLoadError!,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(color: AppTheme.olive),
                             ),
                           ),
@@ -359,58 +313,7 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                     ),
                   ],
                   SizedBox(height: 28.h),
-                  StreamBuilder<PlayerState>(
-                    stream: _player.playerStateStream,
-                    builder: (context, snapshot) {
-                      final state = snapshot.data ?? _player.playerState;
-                      final completed =
-                          state.processingState == ProcessingState.completed;
-                      final isBuffering = state.processingState ==
-                              ProcessingState.loading ||
-                          state.processingState == ProcessingState.buffering;
-                      final isPlaying = state.playing &&
-                          state.processingState == ProcessingState.ready;
-                      return AppButton(
-                        text: _audioLoading
-                            ? '音频加载中'
-                            : isBuffering
-                                ? '音频缓冲中'
-                                : _audioReady
-                                    ? (isPlaying
-                                        ? '暂停故事'
-                                        : completed
-                                            ? '重新讲故事'
-                                            : '开始讲故事')
-                                    : '音频暂不可用',
-                        height: 68.h,
-                        backgroundColor: AppTheme.peach,
-                        textColor: AppTheme.olive,
-                        borderSide:
-                            const BorderSide(color: AppTheme.olive, width: 2.4),
-                        icon: Icon(
-                          isPlaying
-                              ? Icons.pause_circle_outline_rounded
-                              : Icons.play_circle_outline_rounded,
-                          color: AppTheme.olive,
-                        ),
-                        onPressed: _audioReady ? _togglePlayback : null,
-                      );
-                    },
-                  ),
-                  SizedBox(height: 20.h),
-                  _AudioProgress(
-                    position: _displayPosition,
-                    actualDuration: _player.duration,
-                    fallbackDuration: fallbackDuration,
-                    minHeight: 10.h,
-                    color: AppTheme.skyDeep,
-                    showTotal: true,
-                  ),
-                  SizedBox(height: 26.h),
-                  JoyfishCard(
-                    padding: EdgeInsets.all(22.w),
-                    child: _StoryBodyContent(story: story),
-                  ),
+                  _StoryBodyContent(story: story),
                 ],
               ),
               Positioned(
@@ -474,8 +377,9 @@ class _FloatingAudioControl extends StatelessWidget {
             playerState.processingState == ProcessingState.completed;
         final isBuffering =
             playerState.processingState == ProcessingState.loading ||
-                playerState.processingState == ProcessingState.buffering;
-        final isPlaying = playerState.playing &&
+            playerState.processingState == ProcessingState.buffering;
+        final isPlaying =
+            playerState.playing &&
             playerState.processingState == ProcessingState.ready;
         final enabled = ready && !loading;
 
@@ -494,7 +398,7 @@ class _FloatingAudioControl extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: enabled
                         ? const LinearGradient(
-                            colors: [Color(0xFF7357F6), Color(0xFF5B7CF6)],
+                            colors: [Color(0xFFFFA05D), Color(0xFF327E71)],
                           )
                         : null,
                     color: enabled ? null : const Color(0xFFE4DFEA),
@@ -502,7 +406,7 @@ class _FloatingAudioControl extends StatelessWidget {
                     boxShadow: enabled
                         ? const [
                             BoxShadow(
-                              color: Color(0x2F7357F6),
+                              color: Color(0x33B66A32),
                               blurRadius: 16,
                               offset: Offset(0, 8),
                             ),
@@ -576,14 +480,14 @@ class _FloatingAudioDetails extends StatelessWidget {
     final title = loading
         ? '正在准备音频'
         : buffering
-            ? '正在缓冲音频'
-            : ready
-                ? (isPlaying
-                    ? '正在讲故事'
-                    : completed
-                        ? '点击重新播放'
-                        : '点击播放故事')
-                : '音频暂不可用';
+        ? '正在缓冲音频'
+        : ready
+        ? (isPlaying
+              ? '正在讲故事'
+              : completed
+              ? '点击重新播放'
+              : '点击播放故事')
+        : '音频暂不可用';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,9 +498,9 @@ class _FloatingAudioDetails extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: const Color(0xFF2D3446),
-                fontWeight: FontWeight.w900,
-              ),
+            color: const Color(0xFF2D3446),
+            fontWeight: FontWeight.w900,
+          ),
         ),
         SizedBox(height: 6.h),
         _AudioProgress(
@@ -604,7 +508,7 @@ class _FloatingAudioDetails extends StatelessWidget {
           actualDuration: player.duration,
           fallbackDuration: fallbackDuration,
           minHeight: 7.h,
-          color: const Color(0xFF7357F6),
+          color: AppTheme.coral,
           enabled: ready,
         ),
         SizedBox(height: 5.h),
@@ -613,9 +517,9 @@ class _FloatingAudioDetails extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.mutedInk,
-                fontWeight: FontWeight.w700,
-              ),
+            color: AppTheme.mutedInk,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ],
     );
@@ -630,7 +534,6 @@ class _AudioProgress extends StatelessWidget {
     required this.minHeight,
     required this.color,
     this.enabled = true,
-    this.showTotal = false,
   });
 
   final Duration position;
@@ -639,7 +542,6 @@ class _AudioProgress extends StatelessWidget {
   final double minHeight;
   final Color color;
   final bool enabled;
-  final bool showTotal;
 
   @override
   Widget build(BuildContext context) {
@@ -652,40 +554,14 @@ class _AudioProgress extends StatelessWidget {
         ? (displayPosition.inMilliseconds / totalMs).clamp(0.0, 1.0)
         : 0.0;
 
-    final progress = ClipRRect(
+    return ClipRRect(
       borderRadius: BorderRadius.circular(99.r),
       child: LinearProgressIndicator(
         minHeight: minHeight,
         value: value,
-        backgroundColor: const Color(0xFFE8E2F2),
+        backgroundColor: const Color(0xFFFFE7C7),
         valueColor: AlwaysStoppedAnimation<Color>(color),
       ),
-    );
-
-    if (!showTotal) {
-      return progress;
-    }
-
-    return Column(
-      children: [
-        progress,
-        SizedBox(height: 8.h),
-        Row(
-          children: [
-            Text(
-              _formatAudioDuration(displayPosition),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const Spacer(),
-            Text(
-              hasActualDuration
-                  ? _formatAudioDuration(duration)
-                  : '约 ${_formatAudioDuration(duration)}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
@@ -703,7 +579,7 @@ String _formatAudioProgressLabel(Duration position, Duration? duration) {
   return '${_formatAudioDuration(position)} / ${_formatAudioDuration(duration)}';
 }
 
-enum _StoryBlockType { heading, paragraph, image }
+enum _StoryBlockType { heading, paragraph }
 
 class _StoryContentBlock {
   const _StoryContentBlock(this.type, this.value);
@@ -743,51 +619,25 @@ class _StoryBlockView extends StatelessWidget {
       case _StoryBlockType.heading:
         return Text(
           block.value,
-          style: Theme.of(context)
-              .textTheme
-              .headlineMedium
-              ?.copyWith(color: AppTheme.skyDeep),
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            color: AppTheme.skyDeep,
+            height: 1.18,
+          ),
         );
-      case _StoryBlockType.image:
-        final url = AppConfig.instance.resolveMediaUrl(block.value);
-        if (url == null) {
-          return const SizedBox.shrink();
-        }
-        return _StoryImage(url: url);
       case _StoryBlockType.paragraph:
         return Text(
           block.value,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.7),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            height: 1.72,
+            color: const Color(0xFF363023),
+          ),
         );
     }
   }
 }
 
 List<_StoryContentBlock> _composeStoryBlocks(StoryRecord story) {
-  final parsed = _parseStoryBlocks(story.bodyMd);
-  if (parsed.any((block) => block.type == _StoryBlockType.image)) {
-    return parsed;
-  }
-
-  final paragraphs = parsed
-      .where((block) => block.type == _StoryBlockType.paragraph)
-      .map((block) => block.value)
-      .toList();
-  final images = _deriveStoryImageUrls(story);
-  if (images.isEmpty || paragraphs.isEmpty) {
-    return parsed;
-  }
-
-  final blocks = <_StoryContentBlock>[];
-  for (var index = 0; index < paragraphs.length; index++) {
-    blocks
-        .add(_StoryContentBlock(_StoryBlockType.paragraph, paragraphs[index]));
-    final imageIndex = index + 1;
-    if (imageIndex < images.length) {
-      blocks.add(_StoryContentBlock(_StoryBlockType.image, images[imageIndex]));
-    }
-  }
-  return blocks;
+  return _parseStoryBlocks(story.bodyMd);
 }
 
 List<_StoryContentBlock> _parseStoryBlocks(String markdown) {
@@ -821,7 +671,6 @@ List<_StoryContentBlock> _parseStoryBlocks(String markdown) {
     final imageUrl = _extractMarkdownImageUrl(line);
     if (imageUrl != null) {
       flushParagraph();
-      blocks.add(_StoryContentBlock(_StoryBlockType.image, imageUrl));
       continue;
     }
 
@@ -871,62 +720,6 @@ String _cleanInlineMarkdown(String line) {
       .trim();
 }
 
-List<String> _deriveStoryImageUrls(StoryRecord story) {
-  final urls = <String>[];
-  if ((story.coverImageUrl ?? '').trim().isNotEmpty) {
-    urls.add(story.coverImageUrl!.trim());
-  }
-
-  final cover = story.coverImageUrl ?? '';
-  final match = RegExp(r'^(.*)/cover\.[a-zA-Z0-9]+$').firstMatch(cover);
-  final base = match?.group(1);
-  if (base != null) {
-    for (var index = 1; index <= 4; index++) {
-      urls.add('$base/scene-${index.toString().padLeft(2, '0')}.png');
-    }
-  }
-
-  return urls;
-}
-
-class _StoryImage extends StatelessWidget {
-  const _StoryImage({required this.url});
-
-  final String url;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(18.r),
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: JoyfishCachedImage(
-          imageUrl: url,
-          fit: BoxFit.cover,
-          placeholder: (context) => Container(
-            color: const Color(0xFFEAF5FF),
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: 24.w,
-              height: 24.w,
-              child: const CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-          errorBuilder: (context, error, stackTrace) => Container(
-            color: const Color(0xFFEAF5FF),
-            alignment: Alignment.center,
-            child: Icon(
-              Icons.image_not_supported_rounded,
-              color: AppTheme.mutedInk,
-              size: 32.sp,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _StoryTopBar extends StatelessWidget {
   const _StoryTopBar({required this.onBack});
 
@@ -934,17 +727,15 @@ class _StoryTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return JoyfishPageHeader(
-      title: '故事详情',
-      subtitle: '阅读绘本并选择喜欢的声音',
-      leading: JoyfishIconBubble(
-        icon: Icons.arrow_back_rounded,
-        onTap: onBack,
-      ),
-      trailing: JoyfishIconBubble(
-        icon: Icons.home_rounded,
-        onTap: () => context.router.popUntilRoot(),
-      ),
+    return Row(
+      children: [
+        JoyfishIconBubble(icon: Icons.arrow_back_rounded, onTap: onBack),
+        const Spacer(),
+        JoyfishIconBubble(
+          icon: Icons.home_rounded,
+          onTap: () => context.router.popUntilRoot(),
+        ),
+      ],
     );
   }
 }
@@ -969,25 +760,6 @@ class _DetailCover extends StatelessWidget {
           )
         else
           _FallbackCover(visual: visual),
-        Positioned(
-          left: 20.w,
-          top: 20.h,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.22),
-              borderRadius: BorderRadius.circular(18.r),
-            ),
-            child: Text(
-              visual.subtitle,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -1005,55 +777,14 @@ class _FallbackCover extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             visual.color.withValues(alpha: 0.95),
-            const Color(0xFF222431)
+            const Color(0xFF222431),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Center(
-        child: Text(
-          visual.emoji,
-          style: TextStyle(fontSize: 96.sp),
-        ),
-      ),
-    );
-  }
-}
-
-class _VoiceCard extends StatelessWidget {
-  const _VoiceCard({
-    required this.icon,
-    required this.label,
-    required this.selected,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return JoyfishCard(
-      radius: 28.r,
-      backgroundColor: Colors.white,
-      border: Border.all(
-        color: selected ? const Color(0xFF9AE86B) : const Color(0xFFF0EBF8),
-        width: selected ? 3 : 1.2,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 42.r,
-            backgroundColor: selected ? AppTheme.leaf : const Color(0xFFD8E9FF),
-            child: Icon(icon,
-                color: selected ? const Color(0xFF2F7D00) : AppTheme.skyDeep,
-                size: 38.sp),
-          ),
-          SizedBox(height: 24.h),
-          Text(label, style: Theme.of(context).textTheme.bodyLarge),
-        ],
+        child: Text(visual.emoji, style: TextStyle(fontSize: 96.sp)),
       ),
     );
   }

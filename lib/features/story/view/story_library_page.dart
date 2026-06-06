@@ -16,10 +16,12 @@ class StoryLibraryPage extends ConsumerWidget {
     super.key,
     required this.onCompose,
     required this.onOpenStory,
+    this.sheetMode = false,
   });
 
   final VoidCallback onCompose;
   final ValueChanged<int> onOpenStory;
+  final bool sheetMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,7 +43,12 @@ class StoryLibraryPage extends ConsumerWidget {
             .loadStories(force: true);
       },
       child: ListView(
-        padding: EdgeInsets.fromLTRB(28.w, 0, 28.w, 132.h),
+        padding: EdgeInsets.fromLTRB(
+          24.r,
+          sheetMode ? 4.h : 0,
+          24.r,
+          sheetMode ? 36.h : 132.h,
+        ),
         children: [
           SizedBox(height: 14.h),
           JoyfishPageHeader(
@@ -190,12 +197,12 @@ class _ProgressCard extends StatelessWidget {
     return GestureDetector(
       onTap: onCreate,
       child: Container(
-        padding: EdgeInsets.all(24.w),
+        padding: EdgeInsets.all(22.r),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFFFD45A), Color(0xFFFFBE54)],
+            colors: [Color(0xFFFFD777), Color(0xFFFFB45A)],
           ),
           borderRadius: BorderRadius.circular(28.r),
           boxShadow: const [
@@ -209,29 +216,32 @@ class _ProgressCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.auto_awesome_rounded,
-                  color: AppTheme.olive,
-                  size: 28.sp,
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Text(
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    color: AppTheme.olive,
+                    size: 28.r,
+                  ),
+                  SizedBox(width: 12.r),
+                  Text(
                     '本月故事进度',
                     style: Theme.of(
                       context,
                     ).textTheme.headlineMedium?.copyWith(color: AppTheme.olive),
                   ),
-                ),
-                Text(
-                  '$used / $limit',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.headlineMedium?.copyWith(color: AppTheme.olive),
-                ),
-              ],
+                  SizedBox(width: 24.r),
+                  Text(
+                    '$used / $limit',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineMedium?.copyWith(color: AppTheme.olive),
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: 18.h),
             ClipRRect(
@@ -240,9 +250,7 @@ class _ProgressCard extends StatelessWidget {
                 minHeight: 16.h,
                 value: limit == 0 ? 0 : used / limit,
                 backgroundColor: Colors.white,
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppTheme.skyDeep,
-                ),
+                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.coral),
               ),
             ),
             SizedBox(height: 18.h),

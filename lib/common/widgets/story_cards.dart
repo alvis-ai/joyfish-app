@@ -42,6 +42,19 @@ class JoyfishStoryCard extends StatelessWidget {
             child: JoyfishCard(
               padding: EdgeInsets.zero,
               radius: 28.r,
+              border: Border.all(color: const Color(0xFFFFF3DF), width: 2),
+              shadow: const [
+                BoxShadow(
+                  color: Color(0x2E7E5730),
+                  blurRadius: 18,
+                  offset: Offset(8, 12),
+                ),
+                BoxShadow(
+                  color: Color(0x18000000),
+                  blurRadius: 0,
+                  offset: Offset(5, 5),
+                ),
+              ],
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(28.r),
                 child: _StoryArt(
@@ -59,9 +72,9 @@ class JoyfishStoryCard extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: const Color(0xFF2D3446),
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: const Color(0xFF2D3446)),
           ),
           SizedBox(height: 4.h),
           Text(
@@ -69,9 +82,9 @@ class JoyfishStoryCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF78839A),
-                  fontWeight: FontWeight.w700,
-                ),
+              color: const Color(0xFF78839A),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -104,6 +117,19 @@ class JoyfishFeaturedStoryCard extends StatelessWidget {
         child: JoyfishCard(
           padding: EdgeInsets.zero,
           radius: 30.r,
+          border: Border.all(color: const Color(0xFFFFF3DF), width: 2),
+          shadow: const [
+            BoxShadow(
+              color: Color(0x2E7E5730),
+              blurRadius: 20,
+              offset: Offset(9, 14),
+            ),
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 0,
+              offset: Offset(5, 5),
+            ),
+          ],
           child: ClipRRect(
             borderRadius: BorderRadius.circular(30.r),
             child: Stack(
@@ -121,10 +147,7 @@ class JoyfishFeaturedStoryCard extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Color(0xB8222431),
-                      ],
+                      colors: [Colors.transparent, Color(0xB8222431)],
                     ),
                   ),
                 ),
@@ -136,9 +159,9 @@ class JoyfishFeaturedStoryCard extends StatelessWidget {
                     title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          color: Colors.white,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineLarge?.copyWith(color: Colors.white),
                   ),
                 ),
               ],
@@ -212,7 +235,7 @@ class _StoryArt extends StatelessWidget {
             width: 42.w,
             height: 42.w,
             decoration: const BoxDecoration(
-              color: Colors.white,
+              color: Color(0xFFFFF8EC),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -222,7 +245,7 @@ class _StoryArt extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(actionIcon, color: AppTheme.skyDeep, size: 22.sp),
+            child: Icon(actionIcon, color: AppTheme.coral, size: 22.sp),
           ),
         ),
         if (onDelete != null)
@@ -299,10 +322,7 @@ class _FallbackStoryArt extends StatelessWidget {
           ),
           if (showEmoji)
             Center(
-              child: Text(
-                visual.emoji,
-                style: TextStyle(fontSize: 78.sp),
-              ),
+              child: Text(visual.emoji, style: TextStyle(fontSize: 78.sp)),
             ),
         ],
       ),

@@ -94,25 +94,29 @@ const _characters = [
 
 const _scenes = [
   _StoryScenePreset(
-      label: '海底世界',
-      emoji: '🌊',
-      color: Color(0xFF1CBCE1),
-      scenario: '探索神秘又温柔的海底世界'),
+    label: '海底世界',
+    emoji: '🌊',
+    color: Color(0xFF1CBCE1),
+    scenario: '探索神秘又温柔的海底世界',
+  ),
   _StoryScenePreset(
-      label: '太空探索',
-      emoji: '🚀',
-      color: Color(0xFFA075F5),
-      scenario: '去太空寻找发光的小秘密'),
+    label: '太空探索',
+    emoji: '🚀',
+    color: Color(0xFFA075F5),
+    scenario: '去太空寻找发光的小秘密',
+  ),
   _StoryScenePreset(
-      label: '魔法森林',
-      emoji: '🌳',
-      color: Color(0xFF17D67C),
-      scenario: '在森林里遇见会说话的树和精灵'),
+    label: '魔法森林',
+    emoji: '🌳',
+    color: Color(0xFF17D67C),
+    scenario: '在森林里遇见会说话的树和精灵',
+  ),
   _StoryScenePreset(
-      label: '云朵城堡',
-      emoji: '☁️',
-      color: Color(0xFFF9BF17),
-      scenario: '走进软软的云朵城堡寻找彩虹门'),
+    label: '云朵城堡',
+    emoji: '☁️',
+    color: Color(0xFFF9BF17),
+    scenario: '走进软软的云朵城堡寻找彩虹门',
+  ),
 ];
 
 const _topics = [
@@ -126,16 +130,8 @@ const _topics = [
     emoji: '🤝',
     instruction: '讲述朋友之间理解、合作和互相帮助',
   ),
-  _StoryTopicPreset(
-    label: '睡前安抚',
-    emoji: '🌙',
-    instruction: '语气温柔放松，适合睡前慢慢听',
-  ),
-  _StoryTopicPreset(
-    label: '好奇探索',
-    emoji: '🔍',
-    instruction: '鼓励观察、提问和发现世界的奥秘',
-  ),
+  _StoryTopicPreset(label: '睡前安抚', emoji: '🌙', instruction: '语气温柔放松，适合睡前慢慢听'),
+  _StoryTopicPreset(label: '好奇探索', emoji: '🔍', instruction: '鼓励观察、提问和发现世界的奥秘'),
   _StoryTopicPreset(
     label: '情绪成长',
     emoji: '💛',
@@ -150,10 +146,7 @@ const _topics = [
 
 @RoutePage()
 class StoryComposerPage extends ConsumerStatefulWidget {
-  const StoryComposerPage({
-    super.key,
-    this.embedded = false,
-  });
+  const StoryComposerPage({super.key, this.embedded = false});
 
   final bool embedded;
 
@@ -196,7 +189,7 @@ class _StoryComposerPageState extends ConsumerState<StoryComposerPage> {
   Widget build(BuildContext context) {
     final canUseCustomPrompt =
         ref.watch(sessionControllerProvider).user?.canUseCustomStoryPrompt ??
-            false;
+        false;
     final child = _ComposerBody(
       selectedCharacter: _selectedCharacter,
       selectedScene: _selectedScene,
@@ -237,9 +230,9 @@ class _StoryComposerPageState extends ConsumerState<StoryComposerPage> {
     final selectedChild = ref.read(selectedChildProvider);
     if (selectedChild == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('请先选择一个小朋友档案')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('请先选择一个小朋友档案')));
         context.router.push(const ChildProfileRoute());
       }
       return;
@@ -247,44 +240,44 @@ class _StoryComposerPageState extends ConsumerState<StoryComposerPage> {
 
     setState(() => _submitting = true);
     try {
-      final character =
-          _characters.firstWhere((item) => item.label == _selectedCharacter);
+      final character = _characters.firstWhere(
+        (item) => item.label == _selectedCharacter,
+      );
       final scene = _scenes.firstWhere((item) => item.label == _selectedScene);
       final topic = _topics.firstWhere((item) => item.label == _selectedTheme);
       final canUseCustomPrompt =
           ref.read(sessionControllerProvider).user?.canUseCustomStoryPrompt ??
-              false;
-      final customPrompt =
-          canUseCustomPrompt ? _customStoryController.text.trim() : '';
+          false;
+      final customPrompt = canUseCustomPrompt
+          ? _customStoryController.text.trim()
+          : '';
       final voices = ref.read(voiceControllerProvider).items;
-      final request =
-          await ref.read(storyRepositoryProvider).createStoryRequest(
-                childId: selectedChild.id,
-                titleHint: '${topic.label}故事',
-                scenario: [
-                  '主角是$_characterCount个${character.label}，${character.description}。',
-                  scene.scenario,
-                  topic.instruction,
-                  if (customPrompt.isNotEmpty) customPrompt,
-                ].join(' '),
-                timeOfDay: '睡前',
-                characters: {
-                  'count': _characterCount,
-                  'items': [
-                    {
-                      'name': character.label,
-                      'description': character.description,
-                    }
-                  ],
-                },
-                themeTags: [
-                  character.label,
-                  scene.label,
-                  topic.label,
-                  if (customPrompt.isNotEmpty) '自定义故事',
-                ],
-                voiceRole: voices.isEmpty ? null : voices.first.role,
-              );
+      final request = await ref
+          .read(storyRepositoryProvider)
+          .createStoryRequest(
+            childId: selectedChild.id,
+            titleHint: '${topic.label}故事',
+            scenario: [
+              '主角是$_characterCount个${character.label}，${character.description}。',
+              scene.scenario,
+              topic.instruction,
+              if (customPrompt.isNotEmpty) customPrompt,
+            ].join(' '),
+            timeOfDay: '睡前',
+            characters: {
+              'count': _characterCount,
+              'items': [
+                {'name': character.label, 'description': character.description},
+              ],
+            },
+            themeTags: [
+              character.label,
+              scene.label,
+              topic.label,
+              if (customPrompt.isNotEmpty) '自定义故事',
+            ],
+            voiceRole: voices.isEmpty ? null : voices.first.role,
+          );
       if (!mounted) return;
       await context.router.push(StoryGeneratingRoute(requestId: request.id));
       await ref
@@ -295,9 +288,9 @@ class _StoryComposerPageState extends ConsumerState<StoryComposerPage> {
       }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(userFacingErrorMessage(error))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(userFacingErrorMessage(error))));
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
@@ -340,20 +333,45 @@ class _ComposerBody extends ConsumerWidget {
     final selectedChild = ref.watch(selectedChildProvider);
 
     return ListView(
-      padding: EdgeInsets.fromLTRB(22.w, 12.h, 22.w, 140.h),
+      padding: EdgeInsets.fromLTRB(22.w, 8.h, 22.w, 40.h),
       children: [
         JoyfishPageHeader(
-          title: '创作故事',
-          subtitle: '挑选角色和主题，开始新的奇幻冒险',
+          title: '你想听什么故事？',
+          subtitle: selectedChild == null
+              ? '先选故事模板，提交时会引导创建孩子档案'
+              : '为${selectedChild.nickname}定制今晚的小冒险',
           trailing: JoyfishIconBubble(
             icon: Icons.auto_awesome_rounded,
             onTap: () {},
           ),
         ),
-        SizedBox(height: 28.h),
-        const _StepDots(),
-        SizedBox(height: 28.h),
-        _BlockTitle(icon: Icons.pets_rounded, title: '选择你的主角'),
+        SizedBox(height: 22.h),
+        _ChildStoryPrompt(childName: selectedChild?.nickname ?? '小朋友'),
+        SizedBox(height: 24.h),
+        _BlockTitle(icon: Icons.landscape_rounded, title: 'Ta 今天的梦境主题是'),
+        SizedBox(height: 14.h),
+        GridView.builder(
+          itemCount: _scenes.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisExtent: 112.h,
+            crossAxisSpacing: 12.w,
+            mainAxisSpacing: 12.h,
+          ),
+          itemBuilder: (context, index) {
+            final item = _scenes[index];
+            final selected = item.label == selectedScene;
+            return _SceneTile(
+              preset: item,
+              selected: selected,
+              onTap: () => onSceneSelected(item.label),
+            );
+          },
+        ),
+        SizedBox(height: 24.h),
+        _BlockTitle(icon: Icons.pets_rounded, title: '有这些伙伴在 Ta 身边'),
         SizedBox(height: 14.h),
         _CharacterGrid(
           selectedCharacter: selectedCharacter,
@@ -364,22 +382,8 @@ class _ComposerBody extends ConsumerWidget {
           value: characterCount,
           onChanged: onCharacterCountChanged,
         ),
-        SizedBox(height: 28.h),
-        _BlockTitle(icon: Icons.landscape_rounded, title: '选择故事场景'),
-        SizedBox(height: 14.h),
-        ..._scenes.map((item) {
-          final selected = item.label == selectedScene;
-          return Padding(
-            padding: EdgeInsets.only(bottom: 14.h),
-            child: _SceneTile(
-              preset: item,
-              selected: selected,
-              onTap: () => onSceneSelected(item.label),
-            ),
-          );
-        }),
-        SizedBox(height: 14.h),
-        _BlockTitle(icon: Icons.auto_awesome_rounded, title: '故事主题'),
+        SizedBox(height: 24.h),
+        _BlockTitle(icon: Icons.auto_awesome_rounded, title: '故事里想学会什么？'),
         SizedBox(height: 14.h),
         Wrap(
           spacing: 12.w,
@@ -399,10 +403,7 @@ class _ComposerBody extends ConsumerWidget {
           JoyfishCard(
             padding: EdgeInsets.all(16.w),
             backgroundColor: const Color(0xFFF3FFE8),
-            border: Border.all(
-              color: const Color(0xFF9AD96C),
-              width: 1.4,
-            ),
+            border: Border.all(color: const Color(0xFF9AD96C), width: 1.4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -414,9 +415,9 @@ class _ComposerBody extends ConsumerWidget {
                       child: Text(
                         '写下你的奇思妙想',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: const Color(0xFF2F7D00),
-                              fontWeight: FontWeight.w800,
-                            ),
+                          color: const Color(0xFF2F7D00),
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ],
@@ -434,16 +435,19 @@ class _ComposerBody extends ConsumerWidget {
             ),
           ),
         ],
-        SizedBox(height: 28.h),
+        SizedBox(height: 24.h),
         AppButton(
-          text: '生成我的故事',
+          text: '开启故事',
           isLoading: submitting,
-          height: 72.h,
-          backgroundColor: AppTheme.peach,
-          textColor: AppTheme.ink,
-          borderSide: const BorderSide(color: AppTheme.ink, width: 2.4),
+          height: 64.h,
+          backgroundColor: AppTheme.skyDeep,
+          textColor: Colors.white,
+          borderSide: BorderSide(
+            color: Colors.white.withValues(alpha: 0.42),
+            width: 1.2,
+          ),
           onPressed: onSubmit,
-          icon: const Icon(Icons.auto_awesome_rounded, color: AppTheme.ink),
+          icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white),
         ),
         if (selectedChild == null) ...[
           SizedBox(height: 14.h),
@@ -458,70 +462,46 @@ class _ComposerBody extends ConsumerWidget {
   }
 }
 
-class _StepDots extends StatelessWidget {
-  const _StepDots();
+class _ChildStoryPrompt extends StatelessWidget {
+  const _ChildStoryPrompt({required this.childName});
+
+  final String childName;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _StepBadge(label: '1', active: true),
-        _StepLine(active: true),
-        _StepBadge(label: '2', active: false),
-        _StepLine(active: false),
-        _StepBadge(label: '3', active: false),
-      ],
-    );
-  }
-}
-
-class _StepBadge extends StatelessWidget {
-  const _StepBadge({required this.label, required this.active});
-
-  final String label;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 24.w,
-      height: 24.w,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: active ? AppTheme.olive : AppTheme.purpleLight,
-        shape: BoxShape.circle,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x120F172A),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+    return JoyfishCard(
+      padding: EdgeInsets.all(18.w),
+      backgroundColor: Colors.white.withValues(alpha: 0.62),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.44)),
+      child: Row(
+        children: [
+          Container(
+            width: 54.w,
+            height: 54.w,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFD777), Color(0xFFFF8E68)],
+              ),
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: Icon(
+              Icons.nightlight_round,
+              color: Colors.white,
+              size: 26.sp,
+            ),
+          ),
+          SizedBox(width: 14.w),
+          Expanded(
+            child: Text(
+              '$childName 的故事由主题、伙伴和成长愿望组成',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppTheme.olive,
+                fontWeight: FontWeight.w900,
+                height: 1.35,
+              ),
+            ),
           ),
         ],
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-            color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.w900),
-      ),
-    );
-  }
-}
-
-class _StepLine extends StatelessWidget {
-  const _StepLine({required this.active});
-
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 38.w,
-      height: 4.h,
-      margin: EdgeInsets.symmetric(horizontal: 10.w),
-      decoration: BoxDecoration(
-        color: active ? AppTheme.peach : const Color(0xFFBFE3FF),
-        borderRadius: BorderRadius.circular(99.r),
       ),
     );
   }
@@ -537,9 +517,16 @@ class _BlockTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: AppTheme.olive, size: 24.sp),
-        SizedBox(width: 8.w),
-        Text(title, style: Theme.of(context).textTheme.headlineLarge),
+        Icon(icon, color: AppTheme.olive, size: 24.r),
+        SizedBox(width: 8.r),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
+        ),
       ],
     );
   }
@@ -614,32 +601,39 @@ class _CharacterChoice extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(character.emoji, style: TextStyle(fontSize: 30.sp)),
-              SizedBox(height: 8.h),
-              Text(
-                character.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: selected ? Colors.white : AppTheme.ink,
-                      fontWeight: FontWeight.w900,
-                    ),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                character.description,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(character.emoji, style: TextStyle(fontSize: 30.sp)),
+                SizedBox(height: 8.r),
+                Text(
+                  character.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: selected ? Colors.white : AppTheme.ink,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                SizedBox(height: 4.r),
+                SizedBox(
+                  width: 126.r,
+                  child: Text(
+                    character.description,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: selected
                           ? Colors.white.withValues(alpha: 0.88)
                           : AppTheme.mutedInk,
                     ),
-              ),
-            ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -648,10 +642,7 @@ class _CharacterChoice extends StatelessWidget {
 }
 
 class _CharacterCountSelector extends StatelessWidget {
-  const _CharacterCountSelector({
-    required this.value,
-    required this.onChanged,
-  });
+  const _CharacterCountSelector({required this.value, required this.onChanged});
 
   final int value;
   final ValueChanged<int> onChanged;
@@ -659,16 +650,22 @@ class _CharacterCountSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return JoyfishCard(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(horizontal: 14.r, vertical: 12.r),
       child: Row(
         children: [
-          Icon(Icons.group_rounded, color: AppTheme.olive, size: 22.sp),
-          SizedBox(width: 10.w),
-          Text('角色数量', style: Theme.of(context).textTheme.bodyLarge),
-          const Spacer(),
+          Icon(Icons.group_rounded, color: AppTheme.olive, size: 22.r),
+          SizedBox(width: 10.r),
+          Expanded(
+            child: Text(
+              '角色数量',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
           ...[1, 2, 3].map(
             (count) => Padding(
-              padding: EdgeInsets.only(left: 8.w),
+              padding: EdgeInsets.only(left: 8.r),
               child: _CountPill(
                 label: '$count',
                 selected: count == value,
@@ -699,8 +696,8 @@ class _CountPill extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(18.r),
       child: Container(
-        width: 42.w,
-        height: 34.h,
+        width: 42.r,
+        height: 34.r,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: selected ? AppTheme.peach : const Color(0xFFF7F4FB),
@@ -738,20 +735,22 @@ class _SceneTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 88.h,
+        height: double.infinity,
+        padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
               preset.color.withValues(alpha: 0.95),
-              preset.color.withValues(alpha: 0.62)
+              preset.color.withValues(alpha: 0.62),
             ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(26.r),
           border: Border.all(
-            color:
-                selected ? Colors.white : Colors.white.withValues(alpha: 0.7),
+            color: selected
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.7),
             width: selected ? 2.6 : 1.2,
           ),
           boxShadow: const [
@@ -762,25 +761,34 @@ class _SceneTile extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
+        child: Stack(
           children: [
-            SizedBox(width: 20.w),
-            Text(preset.emoji, style: TextStyle(fontSize: 34.sp)),
-            SizedBox(width: 16.w),
-            Expanded(
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Text(preset.emoji, style: TextStyle(fontSize: 34.sp)),
+            ),
+            Positioned(
+              left: 0,
+              right: 8.w,
+              bottom: 0,
               child: Text(
                 preset.label,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium
-                    ?.copyWith(color: Colors.white),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.white,
+                  shadows: const [
+                    Shadow(color: Color(0x33000000), blurRadius: 8),
+                  ],
+                ),
               ),
             ),
             if (selected)
-              Padding(
-                padding: EdgeInsets.only(right: 18.w),
-                child:
-                    const Icon(Icons.check_circle_rounded, color: Colors.white),
+              const Positioned(
+                left: 0,
+                top: 0,
+                child: Icon(Icons.check_circle_rounded, color: Colors.white),
               ),
           ],
         ),
