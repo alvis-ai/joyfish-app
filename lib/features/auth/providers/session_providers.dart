@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_exception.dart';
@@ -74,6 +75,19 @@ class SessionController extends StateNotifier<SessionState> {
         clearError: true,
       );
     } catch (error) {
+      // 只有服务端明确拒绝登录态时才登出。断网、超时或服务端临时故障时，
+      // 用上次保存的用户信息继续进入 App，已缓存的故事仍然可以听。
+      final cachedUser = _isUnauthorized(error) ? null : _readCachedUser();
+      if (cachedUser != null) {
+        state = state.copyWith(
+          initialized: true,
+          bootstrapping: false,
+          user: cachedUser,
+          clearError: true,
+        );
+        return;
+      }
+
       await StorageManager.clearSession();
       state = state.copyWith(
         initialized: true,
@@ -81,6 +95,25 @@ class SessionController extends StateNotifier<SessionState> {
         user: null,
         error: userFacingErrorMessage(error),
       );
+    }
+  }
+
+  bool _isUnauthorized(Object error) {
+    if (error is ApiException) {
+      return error.statusCode == 401;
+    }
+    if (error is DioException) {
+      return error.response?.statusCode == 401;
+    }
+    return false;
+  }
+
+  AuthUser? _readCachedUser() {
+    try {
+      final cached = StorageManager.getUserInfo();
+      return cached == null ? null : AuthUser.fromJson(cached);
+    } catch (_) {
+      return null;
     }
   }
 

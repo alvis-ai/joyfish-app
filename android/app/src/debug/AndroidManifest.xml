@@ -4,4 +4,6 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 仅调试构建允许明文 HTTP，用于连接本机或局域网的开发后端。 -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>
