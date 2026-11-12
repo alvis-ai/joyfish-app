@@ -58,7 +58,7 @@ class ErrorInterceptor extends Interceptor {
       if (rawError.contains('Connection refused') ||
           rawError.contains('Failed host lookup') ||
           rawError.contains('No route to host')) {
-        return '无法连接到开发服务器，请确认手机与电脑在同一网络且后端已启动';
+        return connectionFailedMessage();
       }
     }
 
@@ -76,7 +76,7 @@ class ErrorInterceptor extends Interceptor {
       case DioExceptionType.cancel:
         return '请求已取消';
       case DioExceptionType.connectionError:
-        return '无法连接到开发服务器，请确认手机与电脑在同一网络且后端已启动';
+        return connectionFailedMessage();
       case DioExceptionType.unknown:
         return '网络异常，请稍后重试';
     }
