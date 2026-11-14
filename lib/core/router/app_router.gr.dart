@@ -87,10 +87,17 @@ class SplashRoute extends PageRouteInfo<void> {
 
 /// generated route for
 /// [StoryComposerPage]
-class StoryComposerRoute extends PageRouteInfo<void> {
-  const StoryComposerRoute({List<PageRouteInfo>? children})
-      : super(
+class StoryComposerRoute extends PageRouteInfo<StoryComposerRouteArgs> {
+  StoryComposerRoute({
+    Key? key,
+    bool embedded = false,
+    List<PageRouteInfo>? children,
+  }) : super(
           StoryComposerRoute.name,
+          args: StoryComposerRouteArgs(
+            key: key,
+            embedded: embedded,
+          ),
           initialChildren: children,
         );
 
@@ -99,9 +106,30 @@ class StoryComposerRoute extends PageRouteInfo<void> {
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const StoryComposerPage();
+      final args = data.argsAs<StoryComposerRouteArgs>(
+          orElse: () => const StoryComposerRouteArgs());
+      return StoryComposerPage(
+        key: args.key,
+        embedded: args.embedded,
+      );
     },
   );
+}
+
+class StoryComposerRouteArgs {
+  const StoryComposerRouteArgs({
+    this.key,
+    this.embedded = false,
+  });
+
+  final Key? key;
+
+  final bool embedded;
+
+  @override
+  String toString() {
+    return 'StoryComposerRouteArgs{key: $key, embedded: $embedded}';
+  }
 }
 
 /// generated route for
