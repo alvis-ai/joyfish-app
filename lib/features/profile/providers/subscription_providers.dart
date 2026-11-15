@@ -84,6 +84,7 @@ class SubscriptionController extends StateNotifier<SubscriptionState> {
   final Ref ref;
   final InAppPurchase _iap = InAppPurchase.instance;
   late final StreamSubscription<List<PurchaseDetails>> _purchaseSubscription;
+  int _deliveringCount = 0;
 
   Future<void> loadProducts() async {
     if (!Platform.isIOS) {
@@ -151,11 +152,27 @@ class SubscriptionController extends StateNotifier<SubscriptionState> {
       clearError: true,
       clearMessage: true,
     );
-    await _iap.restorePurchases();
+    try {
+      await _iap.restorePurchases();
+    } catch (error) {
+      state = state.copyWith(
+        restoring: false,
+        error: userFacingErrorMessage(error),
+      );
+      return;
+    }
+    // 没有可恢复的购买时不会有任何交易回调，这里负责收起加载状态。
+    // 有交易时由 _deliverPurchase 更新结果。
+    if (mounted && state.restoring && _deliveringCount == 0) {
+      state = state.copyWith(restoring: false);
+    }
   }
 
   Future<void> _handlePurchaseUpdates(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
+      // 已付款的交易只有在服务端确认开通会员后才能结束。
+      // 否则保留在队列里，下次启动或恢复购买时会重新送达，避免扣款不到账。
+      var canComplete = true;
       switch (purchase.status) {
         case PurchaseStatus.pending:
           state = state.copyWith(purchasing: true);
@@ -176,17 +193,18 @@ class SubscriptionController extends StateNotifier<SubscriptionState> {
           break;
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
-          await _deliverPurchase(purchase);
+          canComplete = await _deliverPurchase(purchase);
           break;
       }
 
-      if (purchase.pendingCompletePurchase) {
+      if (canComplete && purchase.pendingCompletePurchase) {
         await _iap.completePurchase(purchase);
       }
     }
   }
 
-  Future<void> _deliverPurchase(PurchaseDetails purchase) async {
+  Future<bool> _deliverPurchase(PurchaseDetails purchase) async {
+    _deliveringCount++;
     try {
       final user = await ref
           .read(authRepositoryProvider)
@@ -206,12 +224,18 @@ class SubscriptionController extends StateNotifier<SubscriptionState> {
         message: '会员已开通，权益已同步',
         clearError: true,
       );
+      return true;
     } catch (error) {
+      AppLogger.error('Subscription delivery failed', error: error);
       state = state.copyWith(
         purchasing: false,
         restoring: false,
-        error: userFacingErrorMessage(error),
+        error: '会员开通暂未同步成功，请稍后点“恢复购买”重试。'
+            '${userFacingErrorMessage(error)}',
       );
+      return false;
+    } finally {
+      _deliveringCount--;
     }
   }
 

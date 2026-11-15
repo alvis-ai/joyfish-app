@@ -1,3 +1,4 @@
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +23,7 @@ Future<void> bootstrap() async {
     await Hive.initFlutter();
     await StorageManager.init();
     NetworkManager.init();
+    await _configureAudioSession();
 
     runApp(
       ProviderScope(
@@ -36,5 +38,20 @@ Future<void> bootstrap() async {
   } catch (e, stackTrace) {
     AppLogger.error('App bootstrap failed', error: e, stackTrace: stackTrace);
     rethrow;
+  }
+}
+
+/// 把音频会话设为“语音播放”，配合 iOS 的后台音频模式，
+/// 让故事在锁屏或切到后台后继续播放。
+Future<void> _configureAudioSession() async {
+  try {
+    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration.speech());
+  } catch (e, stackTrace) {
+    AppLogger.warning(
+      'Audio session configuration failed',
+      error: e,
+      stackTrace: stackTrace,
+    );
   }
 }

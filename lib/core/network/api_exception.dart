@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiException implements Exception {
   final String message;
@@ -13,6 +14,13 @@ class ApiException implements Exception {
 
   @override
   String toString() => message;
+}
+
+/// 连不上服务器时给用户看的提示。开发服务器的排查提示只在调试构建出现。
+String connectionFailedMessage() {
+  return kDebugMode
+      ? '无法连接到开发服务器，请确认手机与电脑在同一网络且后端已启动'
+      : '网络连接失败，请检查网络后重试';
 }
 
 String userFacingErrorMessage(Object error) {
@@ -36,13 +44,13 @@ String userFacingErrorMessage(Object error) {
 
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
-        return '连接超时，请检查手机与电脑是否在同一网络';
+        return '连接超时，请检查网络后重试';
       case DioExceptionType.sendTimeout:
         return '发送超时，请检查网络后重试';
       case DioExceptionType.receiveTimeout:
         return '接收超时，请检查网络后重试';
       case DioExceptionType.connectionError:
-        return '无法连接到开发服务器，请确认后端已启动且手机能访问电脑 IP';
+        return connectionFailedMessage();
       case DioExceptionType.badResponse:
         return '服务器返回异常，请稍后重试';
       case DioExceptionType.badCertificate:

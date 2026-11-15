@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -115,17 +116,20 @@ class _StoryGeneratingPageState extends ConsumerState<StoryGeneratingPage>
                   ),
                   child: Column(
                     children: [
-                      _InfoLine(label: '状态', value: status),
-                      _InfoLine(
-                        label: '尝试次数',
-                        value:
-                            '${request?.attemptCount ?? 0}/${request?.maxAttempts ?? 0}',
-                      ),
+                      _InfoLine(label: '状态', value: _statusLabel(status)),
                       _InfoLine(
                           label: '主题',
                           value: request?.themeTags.join('、') ?? '未设置'),
-                      if ((request?.lastError ?? '').isNotEmpty)
-                        _InfoLine(label: '错误', value: request!.lastError!),
+                      // 重试次数和原始错误只给开发者看。
+                      if (kDebugMode) ...[
+                        _InfoLine(
+                          label: '尝试次数',
+                          value:
+                              '${request?.attemptCount ?? 0}/${request?.maxAttempts ?? 0}',
+                        ),
+                        if ((request?.lastError ?? '').isNotEmpty)
+                          _InfoLine(label: '错误', value: request!.lastError!),
+                      ],
                     ],
                   ),
                 ),
@@ -145,13 +149,26 @@ class _StoryGeneratingPageState extends ConsumerState<StoryGeneratingPage>
   String _statusText(String status) {
     switch (status) {
       case 'running':
-        return '后端已经接单，正在生成正文、配图和音频。';
+        return '乐鱼正在写故事、画插图、录朗读，请稍等一会儿。';
       case 'succeeded':
         return '故事已经准备好了，正在同步到你的书架。';
       case 'failed':
         return '这次生成没有成功，可以返回重新尝试。';
       default:
         return '请求已提交，正在排队处理中。';
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'running':
+        return '生成中';
+      case 'succeeded':
+        return '已完成';
+      case 'failed':
+        return '未成功';
+      default:
+        return '排队中';
     }
   }
 
