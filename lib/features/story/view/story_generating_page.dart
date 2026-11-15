@@ -230,7 +230,7 @@ class _StoryGeneratingPageState extends ConsumerState<StoryGeneratingPage>
     if (!mounted) return;
     final popped = await context.router.maybePop();
     if (!popped && mounted) {
-      context.router.replace(const StoryComposerRoute());
+      context.router.replace(StoryComposerRoute());
     }
   }
 }
