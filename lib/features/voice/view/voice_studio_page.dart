@@ -62,7 +62,7 @@ class _VoiceStudioPageState extends ConsumerState<VoiceStudioPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.volume_up_outlined, color: AppTheme.purpleLight, size: 28.sp),
+              Icon(Icons.volume_up_outlined, color: AppTheme.grape, size: 28.sp),
               SizedBox(width: 10.w),
               Expanded(
                 child: Text('录制您的声音', style: Theme.of(context).textTheme.displayMedium),
@@ -85,7 +85,7 @@ class _VoiceStudioPageState extends ConsumerState<VoiceStudioPage> {
               Text(
                 _audioPath == null ? '0 / 3' : '3 / 3',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: AppTheme.purpleLight,
+                      color: AppTheme.grape,
                     ),
               ),
             ],
@@ -96,8 +96,8 @@ class _VoiceStudioPageState extends ConsumerState<VoiceStudioPage> {
             child: LinearProgressIndicator(
               minHeight: 10.h,
               value: progress,
-              backgroundColor: const Color(0xFFE3EAF0),
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.purpleLight),
+              backgroundColor: AppTheme.grapeSoft,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.grape),
             ),
           ),
           SizedBox(height: 22.h),
@@ -106,11 +106,10 @@ class _VoiceStudioPageState extends ConsumerState<VoiceStudioPage> {
             return Padding(
               padding: EdgeInsets.only(bottom: 18.h),
               child: JoyfishCard(
-                border: index == 0 && !completed
-                    ? Border.all(color: AppTheme.purpleLight, width: 2.4)
-                    : completed && index == _voiceScripts.length - 1
-                        ? Border.all(color: AppTheme.purpleLight, width: 2.2)
-                        : null,
+                backgroundColor: (index == 0 && !completed) ||
+                        (completed && index == _voiceScripts.length - 1)
+                    ? AppTheme.grapeSoft
+                    : null,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -124,7 +123,7 @@ class _VoiceStudioPageState extends ConsumerState<VoiceStudioPage> {
                             ? AppTheme.leaf
                             : index == 0
                                 ? AppTheme.purple
-                                : const Color(0xFFE6EAF0),
+                                : const Color(0xFFE6EEF6),
                       ),
                       child: completed
                           ? const Icon(Icons.check_rounded, color: Colors.white)
@@ -150,11 +149,11 @@ class _VoiceStudioPageState extends ConsumerState<VoiceStudioPage> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.play_arrow_rounded, color: AppTheme.purpleLight, size: 24.sp),
+                                  Icon(Icons.play_arrow_rounded, color: AppTheme.grape, size: 24.sp),
                                   Text(
                                     _player.playing ? '暂停录音' : '播放录音',
                                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                          color: AppTheme.purpleLight,
+                                          color: AppTheme.grape,
                                           fontWeight: FontWeight.w600,
                                         ),
                                   ),
@@ -189,9 +188,7 @@ class _VoiceStudioPageState extends ConsumerState<VoiceStudioPage> {
             AppButton(
               text: _isRecording ? '结束录制' : '开始录制',
               isLoading: false,
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFF9900), Color(0xFFFFBA00)],
-              ),
+              backgroundColor: AppTheme.candyPink,
               icon: const Icon(Icons.mic_none_rounded, color: Colors.white),
               onPressed: _toggleRecording,
             )
@@ -199,9 +196,7 @@ class _VoiceStudioPageState extends ConsumerState<VoiceStudioPage> {
             AppButton(
               text: '完成并上传',
               isLoading: state.isUploading,
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1ABC7E), Color(0xFF0EA56D)],
-              ),
+              backgroundColor: AppTheme.mint,
               icon: const Icon(Icons.file_upload_outlined, color: Colors.white),
               onPressed: _uploadVoice,
             ),

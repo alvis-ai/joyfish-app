@@ -229,11 +229,7 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        const Color(0xFFFFE1AC).withValues(alpha: 0.48),
-                        const Color(0xFFFFF8EC).withValues(alpha: 0.24),
-                        const Color(0xFFEAF7E0).withValues(alpha: 0.34),
-                      ],
+                      colors: AppTheme.pageGradient.colors,
                     ),
                   ),
                 ),
@@ -247,20 +243,14 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                     aspectRatio: 16 / 9,
                     child: JoyfishCard(
                       padding: EdgeInsets.zero,
-                      radius: 24.r,
-                      border: Border.all(
-                        color: const Color(0xFFFFF3DF),
-                        width: 1.2,
+                      radius: 26.r,
+                      border: AppTheme.stickerBorder(width: 3),
+                      shadow: AppTheme.stickerShadow(
+                        color: AppTheme.skyBlue,
+                        offset: 7,
                       ),
-                      shadow: const [
-                        BoxShadow(
-                          color: Color(0x247E5730),
-                          blurRadius: 18,
-                          offset: Offset(0, 10),
-                        ),
-                      ],
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24.r),
+                        borderRadius: BorderRadius.circular(23.r),
                         child: _DetailCover(visual: visual, imageUrl: coverUrl),
                       ),
                     ),
@@ -269,8 +259,9 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                   Text(
                     story.title,
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      color: AppTheme.skyDeep,
-                      height: 1.12,
+                      color: AppTheme.navy,
+                      fontWeight: FontWeight.w900,
+                      height: 1.15,
                     ),
                   ),
                   SizedBox(height: 12.h),
@@ -282,7 +273,7 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                           : _firstParagraph(story.bodyMd),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         height: 1.55,
-                        color: AppTheme.olive,
+                        color: AppTheme.navyMuted,
                       ),
                     ),
                   if (_audioLoadError != null) ...[
@@ -292,12 +283,13 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                         horizontal: 18.w,
                         vertical: 14.h,
                       ),
-                      backgroundColor: const Color(0xFFFFF7E6),
+                      backgroundColor: AppTheme.lemonSoft,
+                      shadow: AppTheme.stickerShadow(offset: 3),
                       child: Row(
                         children: [
                           Icon(
                             Icons.volume_off_rounded,
-                            color: AppTheme.olive,
+                            color: AppTheme.navy,
                             size: 22.sp,
                           ),
                           SizedBox(width: 10.w),
@@ -305,7 +297,10 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                             child: Text(
                               _audioLoadError!,
                               style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: AppTheme.olive),
+                                  ?.copyWith(
+                                    color: AppTheme.navy,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                             ),
                           ),
                         ],
@@ -386,8 +381,7 @@ class _FloatingAudioControl extends StatelessWidget {
         return JoyfishCard(
           padding: EdgeInsets.fromLTRB(14.w, 12.h, 16.w, 12.h),
           radius: 28.r,
-          backgroundColor: Colors.white.withValues(alpha: 0.96),
-          border: Border.all(color: const Color(0xFFF0EBF8), width: 1.2),
+          backgroundColor: Colors.white,
           child: Row(
             children: [
               GestureDetector(
@@ -396,21 +390,17 @@ class _FloatingAudioControl extends StatelessWidget {
                   width: 54.w,
                   height: 54.w,
                   decoration: BoxDecoration(
-                    gradient: enabled
-                        ? const LinearGradient(
-                            colors: [Color(0xFFFFA05D), Color(0xFF327E71)],
-                          )
-                        : null,
-                    color: enabled ? null : const Color(0xFFE4DFEA),
+                    color: enabled
+                        ? AppTheme.candyPink
+                        : const Color(0xFFE6EEF6),
                     shape: BoxShape.circle,
+                    border: AppTheme.stickerBorder(
+                      color: enabled
+                          ? AppTheme.navy
+                          : AppTheme.navy.withValues(alpha: 0.25),
+                    ),
                     boxShadow: enabled
-                        ? const [
-                            BoxShadow(
-                              color: Color(0x33B66A32),
-                              blurRadius: 16,
-                              offset: Offset(0, 8),
-                            ),
-                          ]
+                        ? AppTheme.stickerShadow(offset: 3)
                         : null,
                   ),
                   child: loading
@@ -498,8 +488,8 @@ class _FloatingAudioDetails extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: const Color(0xFF2D3446),
-            fontWeight: FontWeight.w900,
+            color: AppTheme.navy,
+            fontWeight: FontWeight.w800,
           ),
         ),
         SizedBox(height: 6.h),
@@ -559,7 +549,7 @@ class _AudioProgress extends StatelessWidget {
       child: LinearProgressIndicator(
         minHeight: minHeight,
         value: value,
-        backgroundColor: const Color(0xFFFFE7C7),
+        backgroundColor: AppTheme.candyPinkSoft,
         valueColor: AlwaysStoppedAnimation<Color>(color),
       ),
     );
@@ -620,17 +610,17 @@ class _StoryBlockView extends StatelessWidget {
         return Text(
           block.value,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: AppTheme.skyDeep,
+            color: AppTheme.grape,
+            fontWeight: FontWeight.w900,
             height: 1.18,
           ),
         );
       case _StoryBlockType.paragraph:
         return Text(
           block.value,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            height: 1.72,
-            color: const Color(0xFF363023),
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyLarge?.copyWith(height: 1.75, color: AppTheme.navy),
         );
     }
   }
@@ -775,10 +765,7 @@ class _FallbackCover extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            visual.color.withValues(alpha: 0.95),
-            const Color(0xFF222431),
-          ],
+          colors: [AppTheme.lemonSoft, visual.color.withValues(alpha: 0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

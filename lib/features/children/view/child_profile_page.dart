@@ -51,7 +51,7 @@ class _ChildProfilePageState extends ConsumerState<ChildProfilePage> {
         children: [
           Row(
             children: [
-              Icon(Icons.child_care_outlined, color: AppTheme.purpleLight, size: 28.sp),
+              Icon(Icons.child_care_outlined, color: AppTheme.candyPink, size: 28.sp),
               SizedBox(width: 10.w),
               Expanded(
                 child: Text('选择小朋友', style: Theme.of(context).textTheme.displayMedium),
@@ -98,23 +98,21 @@ class _ChildProfilePageState extends ConsumerState<ChildProfilePage> {
             onTap: () => setState(() => _showCreateForm = !_showCreateForm),
             borderRadius: BorderRadius.circular(26.r),
             child: JoyfishCard(
-              border: Border.all(
-                color: AppTheme.pageLavender,
-                width: 2,
-                style: BorderStyle.solid,
-              ),
-              backgroundColor: Colors.white.withValues(alpha: 0.42),
+              border: Border.all(color: AppTheme.grape, width: 2.5),
+              backgroundColor: AppTheme.grapeSoft,
+              shadow: AppTheme.stickerShadow(color: AppTheme.grape, offset: 4),
               child: SizedBox(
                 height: 66.h,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('+', style: TextStyle(fontSize: 30.sp, color: AppTheme.purpleLight)),
+                    Text('+', style: TextStyle(fontSize: 30.sp, color: AppTheme.grape, fontWeight: FontWeight.w900)),
                     SizedBox(width: 12.w),
                     Text(
                       '添加新的小朋友',
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            color: AppTheme.purpleLight,
+                            color: AppTheme.grape,
+                            fontWeight: FontWeight.w900,
                           ),
                     ),
                   ],
@@ -224,11 +222,10 @@ class _ChildCard extends StatelessWidget {
                 width: 66.w,
                 height: 66.w,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF6EAEF7), Color(0xFF9A6BF7)],
-                  ),
+                  color: AppTheme.skySoft,
+                  border: AppTheme.stickerBorder(),
                 ),
                 child: Text(
                   child.gender == 'female' || child.gender == 'girl'
@@ -256,7 +253,7 @@ class _ChildCard extends StatelessWidget {
               ),
               Icon(
                 active ? Icons.check_circle_rounded : Icons.arrow_forward_ios_rounded,
-                color: active ? AppTheme.purpleLight : AppTheme.mutedInk,
+                color: active ? AppTheme.mint : AppTheme.mutedInk,
                 size: active ? 28.sp : 18.sp,
               ),
             ],
