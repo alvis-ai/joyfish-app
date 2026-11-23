@@ -64,13 +64,19 @@ class StoryLibraryPage extends ConsumerWidget {
           SizedBox(height: 28.h),
           Row(
             children: [
-              CircleAvatar(
-                radius: 38.r,
-                backgroundColor: AppTheme.leaf,
+              Container(
+                width: 64.r,
+                height: 64.r,
+                decoration: BoxDecoration(
+                  color: AppTheme.mint,
+                  shape: BoxShape.circle,
+                  border: AppTheme.stickerBorder(),
+                  boxShadow: AppTheme.stickerShadow(offset: 3),
+                ),
                 child: Icon(
                   Icons.library_books_rounded,
-                  color: AppTheme.olive,
-                  size: 34.sp,
+                  color: Colors.white,
+                  size: 30.sp,
                 ),
               ),
               SizedBox(width: 16.w),
@@ -199,19 +205,10 @@ class _ProgressCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(22.r),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFFFD777), Color(0xFFFFB45A)],
-          ),
+          color: AppTheme.lemon,
           borderRadius: BorderRadius.circular(28.r),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x120F172A),
-              blurRadius: 24,
-              offset: Offset(0, 14),
-            ),
-          ],
+          border: AppTheme.stickerBorder(),
+          boxShadow: AppTheme.stickerShadow(),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +220,7 @@ class _ProgressCard extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.auto_awesome_rounded,
-                    color: AppTheme.olive,
+                    color: AppTheme.navy,
                     size: 28.r,
                   ),
                   SizedBox(width: 12.r),
@@ -231,14 +228,14 @@ class _ProgressCard extends StatelessWidget {
                     '本月故事进度',
                     style: Theme.of(
                       context,
-                    ).textTheme.headlineMedium?.copyWith(color: AppTheme.olive),
+                    ).textTheme.headlineMedium?.copyWith(color: AppTheme.navy),
                   ),
                   SizedBox(width: 24.r),
                   Text(
                     '$used / $limit',
                     style: Theme.of(
                       context,
-                    ).textTheme.headlineMedium?.copyWith(color: AppTheme.olive),
+                    ).textTheme.headlineMedium?.copyWith(color: AppTheme.navy),
                   ),
                 ],
               ),
@@ -246,11 +243,20 @@ class _ProgressCard extends StatelessWidget {
             SizedBox(height: 18.h),
             ClipRRect(
               borderRadius: BorderRadius.circular(99.r),
-              child: LinearProgressIndicator(
-                minHeight: 16.h,
-                value: limit == 0 ? 0 : used / limit,
-                backgroundColor: Colors.white,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.coral),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(99.r),
+                  border: AppTheme.stickerBorder(width: 2),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: LinearProgressIndicator(
+                  minHeight: 14.h,
+                  value: limit == 0 ? 0 : used / limit,
+                  backgroundColor: Colors.white,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppTheme.coral,
+                  ),
+                ),
               ),
             ),
             SizedBox(height: 18.h),
@@ -258,7 +264,7 @@ class _ProgressCard extends StatelessWidget {
               '你还可以创作 $remaining 个新故事！',
               style: Theme.of(
                 context,
-              ).textTheme.headlineSmall?.copyWith(color: AppTheme.olive),
+              ).textTheme.headlineSmall?.copyWith(color: AppTheme.navy),
             ),
           ],
         ),
@@ -279,18 +285,12 @@ class _EmptyLibrary extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30.r),
-        border: Border.all(color: const Color(0xFFD8D0BD), width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33716B5D),
-            blurRadius: 0,
-            offset: Offset(5, 7),
-          ),
-        ],
+        border: AppTheme.stickerBorder(),
+        boxShadow: AppTheme.stickerShadow(),
       ),
       child: Column(
         children: [
-          Icon(Icons.menu_book_rounded, color: AppTheme.skyDeep, size: 76.sp),
+          Icon(Icons.menu_book_rounded, color: AppTheme.skyBlue, size: 76.sp),
           SizedBox(height: 14.h),
           Text('还没有故事', style: Theme.of(context).textTheme.headlineLarge),
           SizedBox(height: 8.h),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../common/themes/app_theme.dart';
+import '../../../common/widgets/candy_widgets.dart';
 import '../../../core/router/app_router.dart';
 import '../../auth/providers/session_providers.dart';
 
@@ -41,27 +42,14 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     });
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFE4F6FF), AppTheme.cream],
-          ),
-        ),
+      backgroundColor: AppTheme.background,
+      body: CandyBackground(
         child: SafeArea(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  width: 120.w,
-                  height: 120.w,
-                  child: Image.asset(
-                    'assets/images/joyfish_logo.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
+                FloatingMascot(size: 120.r),
                 SizedBox(height: 28.h),
                 Text(
                   '乐鱼故事',
@@ -78,7 +66,10 @@ class _SplashPageState extends ConsumerState<SplashPage> {
                 SizedBox(
                   width: 28.w,
                   height: 28.w,
-                  child: const CircularProgressIndicator(strokeWidth: 3),
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 3.5,
+                    color: AppTheme.candyPink,
+                  ),
                 ),
               ],
             ),

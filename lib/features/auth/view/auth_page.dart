@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../common/themes/app_theme.dart';
+import '../../../common/widgets/candy_widgets.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_router.dart';
@@ -67,15 +69,8 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: const Color(0xFFFFF7E8),
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFFFF7E8), Color(0xFFFFEBC3), Color(0xFFEAF7E0)],
-          ),
-        ),
+      backgroundColor: AppTheme.background,
+      body: CandyBackground(
         child: SafeArea(
           child: _mode == _AuthMode.register
               ? _RegisterView(
@@ -493,7 +488,7 @@ class _AuthFrame extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Padding(
-              padding: EdgeInsets.fromLTRB(24.w, 12.h, 24.w, 14.h),
+              padding: EdgeInsets.fromLTRB(22.w, 16.h, 22.w, 20.h),
               child: Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: 420.w),
@@ -502,9 +497,9 @@ class _AuthFrame extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       topBar,
-                      SizedBox(height: 18.h),
+                      SizedBox(height: 20.h),
                       form,
-                      if (footer != null) ...[SizedBox(height: 14.h), footer!],
+                      if (footer != null) ...[SizedBox(height: 22.h), footer!],
                     ],
                   ),
                 ),
@@ -522,39 +517,33 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        SizedBox(
-          width: 44.w,
-          height: 44.w,
-          child: Image.asset(
-            'assets/images/joyfish_logo.png',
-            fit: BoxFit.contain,
+        FloatingMascot(size: 88.r),
+        SizedBox(height: 14.h),
+        Text(
+          '乐鱼故事',
+          style: TextStyle(
+            color: AppTheme.navy,
+            fontSize: 28.sp,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
           ),
         ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '乐鱼故事',
-                style: TextStyle(
-                  color: const Color(0xFF2C251B),
-                  fontSize: 21.sp,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              SizedBox(height: 2.h),
-              Text(
-                '给小朋友的 AI 故事乐园',
-                style: TextStyle(
-                  color: const Color(0xFF8E765D),
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
+        SizedBox(height: 6.h),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: AppTheme.lemon,
+            borderRadius: BorderRadius.circular(99.r),
+          ),
+          child: Text(
+            '给小朋友的 AI 故事乐园',
+            style: TextStyle(
+              color: AppTheme.navy,
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
@@ -569,20 +558,8 @@ class _SoftPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(18.w, 18.h, 18.w, 10.h),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.88),
-        borderRadius: BorderRadius.circular(26.r),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.60)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1A8E5A24),
-            blurRadius: 22,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
+    return StickerCard(
+      padding: EdgeInsets.fromLTRB(20.w, 22.h, 20.w, 12.h),
       child: child,
     );
   }
@@ -602,20 +579,21 @@ class _PanelTitle extends StatelessWidget {
         Text(
           title,
           style: TextStyle(
-            color: const Color(0xFF2C251B),
-            fontSize: 22.sp,
+            color: AppTheme.navy,
+            fontSize: 24.sp,
             fontWeight: FontWeight.w900,
           ),
         ),
-        SizedBox(height: 3.h),
+        SizedBox(height: 4.h),
         Text(
           subtitle,
           style: TextStyle(
-            color: const Color(0xFF8E765D),
-            fontSize: 13.sp,
-            fontWeight: FontWeight.w700,
+            color: AppTheme.navyMuted,
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
           ),
         ),
+        SizedBox(height: 6.h),
       ],
     );
   }
@@ -648,18 +626,14 @@ class _ModernInput extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _FieldLabel(label),
-        SizedBox(height: 4.h),
+        SizedBox(height: 6.h),
         TextField(
           controller: controller,
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
           obscureText: obscureText,
           onChanged: (_) => onChanged(),
-          style: TextStyle(
-            fontSize: 16.sp,
-            color: const Color(0xFF2C251B),
-            fontWeight: FontWeight.w800,
-          ),
+          style: _fieldTextStyle(),
           decoration: _fieldDecoration(hint: hint, icon: icon),
         ),
       ],
@@ -686,7 +660,7 @@ class _CodeInputRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _FieldLabel('手机验证码'),
-        SizedBox(height: 4.h),
+        SizedBox(height: 6.h),
         Row(
           children: [
             Expanded(
@@ -698,11 +672,7 @@ class _CodeInputRow extends StatelessWidget {
                   LengthLimitingTextInputFormatter(6),
                 ],
                 onChanged: (_) => onChanged(),
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: const Color(0xFF2D3446),
-                  fontWeight: FontWeight.w800,
-                ),
+                style: _fieldTextStyle(),
                 decoration: _fieldDecoration(
                   hint: '验证码',
                   icon: Icons.verified_outlined,
@@ -711,37 +681,16 @@ class _CodeInputRow extends StatelessWidget {
             ),
             SizedBox(width: 10.w),
             SizedBox(
-              width: 106.w,
-              height: 46.h,
-              child: FilledButton(
+              width: 112.w,
+              child: CandyButton(
+                label: '获取验证码',
                 onPressed: onRequestCode,
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF327E71),
-                  disabledBackgroundColor: const Color(0xFFE5DED2),
-                  foregroundColor: Colors.white,
-                  disabledForegroundColor: const Color(0xFF9C8B74),
-                  elevation: 0,
-                  padding: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24.r),
-                  ),
-                ),
-                child: requesting
-                    ? SizedBox(
-                        width: 18.w,
-                        height: 18.w,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        '获取验证码',
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
+                loading: requesting,
+                color: AppTheme.lemon,
+                foregroundColor: AppTheme.navy,
+                disabledColor: const Color(0xFFE6EEF6),
+                height: 50.h,
+                fontSize: 14.sp,
               ),
             ),
           ],
@@ -758,45 +707,56 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: TextStyle(
-        color: const Color(0xFF2C251B),
-        fontSize: 13.sp,
-        fontWeight: FontWeight.w900,
+    return Padding(
+      padding: EdgeInsets.only(left: 4.w),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: AppTheme.navy,
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
 }
 
+TextStyle _fieldTextStyle() => TextStyle(
+  fontSize: 17.sp,
+  color: AppTheme.navy,
+  fontWeight: FontWeight.w700,
+  letterSpacing: 0.5,
+);
+
 InputDecoration _fieldDecoration({
   required String hint,
   required IconData icon,
 }) {
+  final radius = BorderRadius.circular(25.r);
   return InputDecoration(
     isDense: true,
     hintText: hint,
     hintStyle: TextStyle(
-      color: const Color(0xFFB8A58A),
-      fontSize: 14.sp,
-      fontWeight: FontWeight.w800,
+      color: const Color(0xFF8D9AB5),
+      fontSize: 15.sp,
+      fontWeight: FontWeight.w500,
     ),
-    prefixIcon: Icon(icon, color: const Color(0xFF8E765D), size: 22.sp),
-    prefixIconConstraints: BoxConstraints(minWidth: 40.w, minHeight: 46.h),
+    prefixIcon: Icon(icon, color: AppTheme.skyBlue, size: 22.sp),
+    prefixIconConstraints: BoxConstraints(minWidth: 46.w, minHeight: 50.h),
     filled: true,
-    fillColor: const Color(0xFFFFF8EC),
-    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+    fillColor: Colors.white,
+    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(24.r),
-      borderSide: BorderSide.none,
+      borderRadius: radius,
+      borderSide: const BorderSide(color: AppTheme.fieldStroke, width: 2),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(24.r),
-      borderSide: BorderSide.none,
+      borderRadius: radius,
+      borderSide: const BorderSide(color: AppTheme.fieldStroke, width: 2),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(24.r),
-      borderSide: const BorderSide(color: Color(0xFFFF805D), width: 1.7),
+      borderRadius: radius,
+      borderSide: const BorderSide(color: AppTheme.candyPink, width: 2.5),
     ),
   );
 }
@@ -814,56 +774,12 @@ class _GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final enabled = onPressed != null && !loading;
-    return Opacity(
-      opacity: enabled ? 1 : 0.55,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFFA05D), Color(0xFF327E71)],
-          ),
-          borderRadius: BorderRadius.circular(28.r),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x2EA96F2C),
-              blurRadius: 20,
-              offset: Offset(0, 10),
-            ),
-          ],
-        ),
-        child: SizedBox(
-          height: 52.h,
-          child: FilledButton(
-            onPressed: loading ? null : onPressed,
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              disabledBackgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28.r),
-              ),
-            ),
-            child: loading
-                ? SizedBox(
-                    width: 20.w,
-                    height: 20.w,
-                    child: const CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2.4,
-                    ),
-                  )
-                : Text(
-                    label,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-          ),
-        ),
-      ),
+    return CandyButton(
+      label: label,
+      loading: loading,
+      onPressed: onPressed,
+      height: 56.h,
+      fontSize: 18.sp,
     );
   }
 }
@@ -881,9 +797,9 @@ class _TextSwitchButton extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: const Color(0xFF327E71),
+          color: AppTheme.skyDeep,
           fontSize: 15.sp,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
@@ -906,58 +822,56 @@ class _LegalConsentText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final baseStyle = TextStyle(
-      color: const Color(0xFF858EA3),
-      fontSize: 11.sp,
-      fontWeight: FontWeight.w600,
+      color: AppTheme.navyMuted,
+      fontSize: 12.sp,
+      fontWeight: FontWeight.w500,
       height: 1.35,
     );
     final linkStyle = baseStyle.copyWith(
-      color: const Color(0xFF327E71),
-      fontWeight: FontWeight.w900,
+      color: AppTheme.candyPink,
+      fontWeight: FontWeight.w800,
       decoration: TextDecoration.underline,
-      decorationColor: const Color(0xFF327E71),
+      decorationColor: AppTheme.candyPink,
     );
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: 26.w,
-          height: 26.w,
-          child: Checkbox(
-            value: accepted,
-            onChanged: (value) => onAcceptedChanged(value ?? false),
-            visualDensity: VisualDensity.compact,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            activeColor: const Color(0xFF327E71),
-            side: const BorderSide(color: Color(0xFFC8C4D4), width: 1.4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5.r),
+    return Padding(
+      padding: EdgeInsets.only(top: 4.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 26.w,
+            height: 26.w,
+            child: Checkbox(
+              value: accepted,
+              onChanged: (value) => onAcceptedChanged(value ?? false),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
-        ),
-        SizedBox(width: 6.w),
-        Expanded(
-          child: Wrap(
-            alignment: WrapAlignment.start,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text('我已阅读并同意', style: baseStyle),
-              _InlineLegalButton(
-                label: '用户协议',
-                style: linkStyle,
-                onPressed: onOpenTerms,
-              ),
-              Text('和', style: baseStyle),
-              _InlineLegalButton(
-                label: '隐私政策',
-                style: linkStyle,
-                onPressed: onOpenPrivacy,
-              ),
-            ],
+          SizedBox(width: 6.w),
+          Expanded(
+            child: Wrap(
+              alignment: WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text('我已阅读并同意', style: baseStyle),
+                _InlineLegalButton(
+                  label: '用户协议',
+                  style: linkStyle,
+                  onPressed: onOpenTerms,
+                ),
+                Text('和', style: baseStyle),
+                _InlineLegalButton(
+                  label: '隐私政策',
+                  style: linkStyle,
+                  onPressed: onOpenPrivacy,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -996,20 +910,10 @@ class _DebugCodeBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFE7C7),
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        child: Text(
-          '调试验证码 $code',
-          style: TextStyle(
-            color: const Color(0xFF715326),
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
+      child: CandyChip(
+        text: '调试验证码 $code',
+        color: AppTheme.lemonSoft,
+        icon: Icons.bug_report_outlined,
       ),
     );
   }
@@ -1034,35 +938,39 @@ class _OtherLoginMethods extends StatelessWidget {
             method: _LoginMethod.password,
             label: '密码',
             icon: Icons.lock_outline_rounded,
-            color: Color(0xFFFF805D),
+            color: AppTheme.grape,
           )
         : const _LoginMethodOption(
             method: _LoginMethod.sms,
             label: '短信',
             icon: Icons.sms_outlined,
-            color: Color(0xFF327E71),
+            color: AppTheme.skyBlue,
           );
 
     return Column(
       children: [
         Row(
           children: [
-            const Expanded(child: Divider(color: Color(0xFFEADCC7))),
+            Expanded(
+              child: Divider(color: AppTheme.navy.withValues(alpha: 0.15)),
+            ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 12.w),
               child: Text(
                 '其他方式登录',
                 style: TextStyle(
-                  color: const Color(0xFF8E765D),
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w800,
+                  color: AppTheme.navyMuted,
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            const Expanded(child: Divider(color: Color(0xFFEADCC7))),
+            Expanded(
+              child: Divider(color: AppTheme.navy.withValues(alpha: 0.15)),
+            ),
           ],
         ),
-        SizedBox(height: 10.h),
+        SizedBox(height: 12.h),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1102,26 +1010,27 @@ class _LoginMethodBubble extends StatelessWidget {
     return Semantics(
       button: true,
       label: '切换到${option.label}登录',
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(30.r),
-        child: Container(
-          width: 52.w,
-          height: 52.w,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF8EC),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFEADCC7)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x128E5A24),
-                blurRadius: 14,
-                offset: Offset(0, 6),
-              ),
-            ],
+      excludeSemantics: true,
+      child: Column(
+        children: [
+          CandyIconButton(
+            icon: option.icon,
+            tooltip: '${option.label}登录',
+            onTap: onTap,
+            color: option.color,
+            iconColor: Colors.white,
+            size: 54.r,
           ),
-          child: Icon(option.icon, color: option.color, size: 24.sp),
-        ),
+          SizedBox(height: 6.h),
+          Text(
+            '${option.label}登录',
+            style: TextStyle(
+              color: AppTheme.navy,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }

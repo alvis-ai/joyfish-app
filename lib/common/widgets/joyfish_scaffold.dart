@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../themes/app_theme.dart';
+import 'candy_widgets.dart';
 
 class JoyfishScaffold extends StatelessWidget {
   const JoyfishScaffold({
@@ -17,54 +18,14 @@ class JoyfishScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFFF7E8), Color(0xFFFFEBC3), Color(0xFFEAF7E0)],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: -80.w,
-            right: -80.w,
-            top: -120.h,
-            child: Container(
-              height: 220.h,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFFFFC857).withValues(alpha: 0.26),
-                    const Color(0xFFFF805D).withValues(alpha: 0.10),
-                  ],
-                ),
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.elliptical(320.w, 120.h),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            right: -30.w,
-            top: 120.h,
-            child: Container(
-              width: 140.w,
-              height: 140.w,
-              decoration: BoxDecoration(
-                color: const Color(0xFFA9D66F).withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(42.r),
-              ),
-            ),
-          ),
-          Positioned.fill(child: useSafeArea ? SafeArea(child: child) : child),
-        ],
+    final content = CandyBackground(
+      child: Positioned.fill(
+        child: useSafeArea ? SafeArea(child: child) : child,
       ),
     );
 
     return Scaffold(
-      backgroundColor: AppTheme.cream,
+      backgroundColor: AppTheme.background,
       extendBody: true,
       body: content,
       bottomNavigationBar: bottomNavigationBar,
@@ -95,19 +56,10 @@ class JoyfishCard extends StatelessWidget {
     return Container(
       padding: padding ?? EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.white.withValues(alpha: 0.96),
+        color: backgroundColor ?? Colors.white,
         borderRadius: BorderRadius.circular(radius ?? 26.r),
-        border:
-            border ?? Border.all(color: const Color(0xFFF0D8B2), width: 1.1),
-        boxShadow:
-            shadow ??
-            const [
-              BoxShadow(
-                color: Color(0x18A96F2C),
-                blurRadius: 24,
-                offset: Offset(0, 12),
-              ),
-            ],
+        border: border ?? AppTheme.stickerBorder(),
+        boxShadow: shadow ?? AppTheme.stickerShadow(),
       ),
       child: child,
     );
@@ -159,8 +111,8 @@ class JoyfishPageHeader extends StatelessWidget {
                 subtitle,
                 style: TextStyle(
                   color: AppTheme.mutedInk,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -195,17 +147,12 @@ class JoyfishIconBubble extends StatelessWidget {
           width: size ?? 44.r,
           height: size ?? 44.r,
           decoration: BoxDecoration(
-            color: const Color(0xFFFFF9EF),
+            color: Colors.white,
             shape: BoxShape.circle,
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x140F172A),
-                blurRadius: 18,
-                offset: Offset(0, 8),
-              ),
-            ],
+            border: AppTheme.stickerBorder(),
+            boxShadow: AppTheme.stickerShadow(offset: 3),
           ),
-          child: Icon(icon, color: AppTheme.olive, size: 22.sp),
+          child: Icon(icon, color: AppTheme.navy, size: 22.sp),
         ),
       ),
     );

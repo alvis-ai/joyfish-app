@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../common/themes/app_theme.dart';
 import '../../../common/widgets/app_button.dart';
+import '../../../common/widgets/candy_widgets.dart';
 import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../core/router/app_router.dart';
 import '../../auth/providers/session_providers.dart';
@@ -75,7 +76,7 @@ class ProfilePage extends ConsumerWidget {
         SizedBox(height: 22.h),
         _BenefitCard(
           title: '普通用户',
-          color: const Color(0xFFE7E3DA),
+          color: const Color(0xFFE6EEF6),
           icon: Icons.person_outline_rounded,
           items: const ['每月 6 篇故事', '标准应用主题', '包含部分广告'],
           positive: false,
@@ -83,7 +84,7 @@ class ProfilePage extends ConsumerWidget {
         SizedBox(height: 18.h),
         _BenefitCard(
           title: 'VIP 探索者',
-          color: AppTheme.peach,
+          color: AppTheme.lemon,
           icon: Icons.stars_rounded,
           items: const ['每月 60 篇故事', '专属梦幻主题', '全程无广告干扰'],
           positive: true,
@@ -92,9 +93,10 @@ class ProfilePage extends ConsumerWidget {
         Center(
           child: Text(
             '选择你的魔法计划',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(color: AppTheme.olive),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: AppTheme.navy,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
         SizedBox(height: 22.h),
@@ -165,9 +167,8 @@ class ProfilePage extends ConsumerWidget {
         AppButton(
           text: '退出登录',
           backgroundColor: Colors.white,
-          textColor: const Color(0xFFD23A3A),
-          borderSide: const BorderSide(color: Color(0xFFF0EBF8), width: 1.4),
-          icon: const Icon(Icons.logout_rounded, color: Color(0xFFD23A3A)),
+          textColor: const Color(0xFFE5484D),
+          icon: const Icon(Icons.logout_rounded),
           onPressed: () async {
             await ref.read(sessionControllerProvider.notifier).logout();
             if (context.mounted) {
@@ -199,7 +200,7 @@ class _StatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return JoyfishCard(
       padding: EdgeInsets.all(24.w),
-      backgroundColor: const Color(0xFFEAF2FF),
+      backgroundColor: AppTheme.skySoft,
       child: Column(
         children: [
           SizedBox(
@@ -231,11 +232,7 @@ class _StatusCard extends StatelessWidget {
             ).textTheme.bodyMedium?.copyWith(color: AppTheme.skyDeep),
           ),
           SizedBox(height: 20.h),
-          Icon(
-            Icons.emoji_events_rounded,
-            color: const Color(0xFFB7C6EE),
-            size: 58.sp,
-          ),
+          Icon(Icons.emoji_events_rounded, color: AppTheme.lemon, size: 58.sp),
         ],
       ),
     );
@@ -292,11 +289,17 @@ class _BenefitCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                backgroundColor: Colors.white,
+              Container(
+                width: 40.r,
+                height: 40.r,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: AppTheme.stickerBorder(width: 2),
+                ),
                 child: Icon(
                   icon,
-                  color: positive ? AppTheme.olive : AppTheme.mutedInk,
+                  color: positive ? AppTheme.candyPink : AppTheme.mutedInk,
                 ),
               ),
               SizedBox(width: 14.w),
@@ -314,8 +317,8 @@ class _BenefitCard extends StatelessWidget {
                         ? Icons.check_circle_outline_rounded
                         : Icons.close_rounded,
                     color: positive
-                        ? const Color(0xFF2F7D00)
-                        : const Color(0xFFD23A3A),
+                        ? const Color(0xFF138A60)
+                        : const Color(0xFFE5484D),
                     size: 18.sp,
                   ),
                   SizedBox(width: 10.w),
@@ -357,14 +360,14 @@ class _PlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return JoyfishCard(
       padding: EdgeInsets.all(24.w),
-      backgroundColor: highlighted ? const Color(0xFFFFE087) : Colors.white,
-      border: Border.all(
-        color: highlighted ? const Color(0xFFFFD45A) : const Color(0xFFF0EBF8),
-        width: 1.4,
+      backgroundColor: highlighted ? AppTheme.lemon : Colors.white,
+      shadow: AppTheme.stickerShadow(
+        color: highlighted ? AppTheme.candyPink : AppTheme.navy,
+        offset: highlighted ? 7 : 5,
       ),
       child: Column(
         children: [
-          Icon(icon, color: AppTheme.skyDeep, size: 34.sp),
+          Icon(icon, color: AppTheme.grape, size: 34.sp),
           SizedBox(height: 14.h),
           Text(title, style: Theme.of(context).textTheme.headlineMedium),
           SizedBox(height: 6.h),
@@ -374,7 +377,7 @@ class _PlanCard extends StatelessWidget {
             text: TextSpan(
               text: price,
               style: TextStyle(
-                color: AppTheme.olive,
+                color: AppTheme.navy,
                 fontSize: 34.sp,
                 fontWeight: FontWeight.w900,
               ),
@@ -394,10 +397,8 @@ class _PlanCard extends StatelessWidget {
             text: button,
             height: 54.h,
             isLoading: isLoading,
-            backgroundColor: highlighted
-                ? AppTheme.olive
-                : AppTheme.purpleLight,
-            textColor: highlighted ? Colors.white : AppTheme.skyDeep,
+            backgroundColor: highlighted ? AppTheme.candyPink : Colors.white,
+            textColor: highlighted ? Colors.white : AppTheme.navy,
             onPressed: onPressed,
           ),
         ],
@@ -419,16 +420,24 @@ class _MiniAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: JoyfishCard(
-        padding: EdgeInsets.symmetric(vertical: 16.h),
-        child: Column(
-          children: [
-            Icon(icon, color: AppTheme.skyDeep),
-            SizedBox(height: 8.h),
-            Text(title, style: Theme.of(context).textTheme.bodyMedium),
-          ],
+    return BouncyTap(
+      child: GestureDetector(
+        onTap: onTap,
+        child: JoyfishCard(
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+          shadow: AppTheme.stickerShadow(offset: 4),
+          child: Column(
+            children: [
+              Icon(icon, color: AppTheme.skyBlue, size: 26.sp),
+              SizedBox(height: 8.h),
+              Text(
+                title,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
         ),
       ),
     );

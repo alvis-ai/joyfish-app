@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../common/themes/app_theme.dart';
 import '../../../common/widgets/app_button.dart';
+import '../../../common/widgets/candy_widgets.dart';
 import '../../../core/router/app_router.dart';
 import '../models/story_models.dart';
 import '../providers/story_providers.dart';
@@ -75,8 +76,12 @@ class _StoryGeneratingPageState extends ConsumerState<StoryGeneratingPage>
         }
       },
       child: Scaffold(
+        backgroundColor: AppTheme.background,
+        extendBodyBehindAppBar: true,
         appBar: AppBar(title: const Text('故事生成中')),
-        body: Padding(
+        body: CandyBackground(
+          child: SafeArea(
+          child: Padding(
           padding: EdgeInsets.all(24.w),
           child: Column(
             children: [
@@ -85,11 +90,16 @@ class _StoryGeneratingPageState extends ConsumerState<StoryGeneratingPage>
                 width: 112.w,
                 height: 112.w,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEAF5FF),
+                  color: AppTheme.lemon,
                   borderRadius: BorderRadius.circular(36.r),
+                  border: AppTheme.stickerBorder(width: 3),
+                  boxShadow: AppTheme.stickerShadow(
+                    color: AppTheme.candyPink,
+                    offset: 6,
+                  ),
                 ),
                 child: const Icon(Icons.auto_stories_rounded,
-                    size: 54, color: AppTheme.skyDeep),
+                    size: 54, color: AppTheme.navy),
               ),
               SizedBox(height: 24.h),
               Text('正在编织今晚的故事',
@@ -105,15 +115,14 @@ class _StoryGeneratingPageState extends ConsumerState<StoryGeneratingPage>
               ),
               SizedBox(height: 26.h),
               if (_loading)
-                const CircularProgressIndicator()
+                const CircularProgressIndicator(
+                  color: AppTheme.candyPink,
+                  strokeWidth: 5,
+                )
               else
-                Container(
+                StickerCard(
                   padding: EdgeInsets.all(18.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24.r),
-                    border: Border.all(color: AppTheme.border),
-                  ),
+                  radius: 24.r,
                   child: Column(
                     children: [
                       _InfoLine(label: '状态', value: _statusLabel(status)),
@@ -141,6 +150,8 @@ class _StoryGeneratingPageState extends ConsumerState<StoryGeneratingPage>
                 ),
             ],
           ),
+        ),
+        ),
         ),
       ),
     );

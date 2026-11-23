@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../common/themes/app_theme.dart';
 import '../../../common/widgets/app_button.dart';
+import '../../../common/widgets/candy_widgets.dart';
 import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_router.dart';
@@ -402,20 +403,19 @@ class _ComposerBody extends ConsumerWidget {
           SizedBox(height: 22.h),
           JoyfishCard(
             padding: EdgeInsets.all(16.w),
-            backgroundColor: const Color(0xFFF3FFE8),
-            border: Border.all(color: const Color(0xFF9AD96C), width: 1.4),
+            backgroundColor: AppTheme.mintSoft,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.stars_rounded, color: Color(0xFF2F7D00)),
+                    const Icon(Icons.stars_rounded, color: Color(0xFF138A60)),
                     SizedBox(width: 8.w),
                     Expanded(
                       child: Text(
                         '写下你的奇思妙想',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: const Color(0xFF2F7D00),
+                          color: const Color(0xFF138A60),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -440,12 +440,8 @@ class _ComposerBody extends ConsumerWidget {
           text: '开启故事',
           isLoading: submitting,
           height: 64.h,
-          backgroundColor: AppTheme.skyDeep,
+          backgroundColor: AppTheme.candyPink,
           textColor: Colors.white,
-          borderSide: BorderSide(
-            color: Colors.white.withValues(alpha: 0.42),
-            width: 1.2,
-          ),
           onPressed: onSubmit,
           icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white),
         ),
@@ -471,22 +467,19 @@ class _ChildStoryPrompt extends StatelessWidget {
   Widget build(BuildContext context) {
     return JoyfishCard(
       padding: EdgeInsets.all(18.w),
-      backgroundColor: Colors.white.withValues(alpha: 0.62),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.44)),
       child: Row(
         children: [
           Container(
             width: 54.w,
             height: 54.w,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFD777), Color(0xFFFF8E68)],
-              ),
+              color: AppTheme.lemon,
               borderRadius: BorderRadius.circular(20.r),
+              border: AppTheme.stickerBorder(width: 2),
             ),
             child: Icon(
               Icons.nightlight_round,
-              color: Colors.white,
+              color: AppTheme.navy,
               size: 26.sp,
             ),
           ),
@@ -495,8 +488,8 @@ class _ChildStoryPrompt extends StatelessWidget {
             child: Text(
               '$childName 的故事由主题、伙伴和成长愿望组成',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.olive,
-                fontWeight: FontWeight.w900,
+                color: AppTheme.navy,
+                fontWeight: FontWeight.w700,
                 height: 1.35,
               ),
             ),
@@ -517,7 +510,7 @@ class _BlockTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: AppTheme.olive, size: 24.r),
+        Icon(icon, color: AppTheme.candyPink, size: 24.r),
         SizedBox(width: 8.r),
         Expanded(
           child: Text(
@@ -589,17 +582,8 @@ class _CharacterChoice extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected ? character.color : Colors.white,
             borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(
-              color: selected ? Colors.white : const Color(0xFFF0EBF8),
-              width: selected ? 2.4 : 1.4,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x120F172A),
-                blurRadius: 18,
-                offset: Offset(0, 10),
-              ),
-            ],
+            border: _choiceBorder(selected),
+            boxShadow: _choiceShadow(selected),
           ),
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -613,8 +597,8 @@ class _CharacterChoice extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: selected ? Colors.white : AppTheme.ink,
-                    fontWeight: FontWeight.w900,
+                    color: AppTheme.navy,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 SizedBox(height: 4.r),
@@ -627,7 +611,7 @@ class _CharacterChoice extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: selected
-                          ? Colors.white.withValues(alpha: 0.88)
+                          ? AppTheme.navy.withValues(alpha: 0.75)
                           : AppTheme.mutedInk,
                     ),
                   ),
@@ -653,7 +637,7 @@ class _CharacterCountSelector extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 14.r, vertical: 12.r),
       child: Row(
         children: [
-          Icon(Icons.group_rounded, color: AppTheme.olive, size: 22.r),
+          Icon(Icons.group_rounded, color: AppTheme.skyBlue, size: 22.r),
           SizedBox(width: 10.r),
           Expanded(
             child: Text(
@@ -700,18 +684,16 @@ class _CountPill extends StatelessWidget {
         height: 34.r,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? AppTheme.peach : const Color(0xFFF7F4FB),
+          color: selected ? AppTheme.lemon : Colors.white,
           borderRadius: BorderRadius.circular(18.r),
-          border: Border.all(
-            color: selected ? AppTheme.ink : const Color(0xFFE9E3F2),
-            width: selected ? 1.8 : 1.2,
-          ),
+          border: _choiceBorder(selected),
+          boxShadow: _choiceShadow(selected, offset: 2),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? AppTheme.ink : AppTheme.mutedInk,
-            fontWeight: FontWeight.w900,
+            color: selected ? AppTheme.navy : AppTheme.mutedInk,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),
@@ -732,65 +714,58 @@ class _SceneTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: double.infinity,
-        padding: EdgeInsets.all(12.w),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              preset.color.withValues(alpha: 0.95),
-              preset.color.withValues(alpha: 0.62),
-            ],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(26.r),
-          border: Border.all(
-            color: selected
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.7),
-            width: selected ? 2.6 : 1.2,
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x120F172A),
-              blurRadius: 18,
-              offset: Offset(0, 10),
+    return BouncyTap(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: double.infinity,
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                preset.color.withValues(alpha: 0.95),
+                preset.color.withValues(alpha: 0.62),
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Text(preset.emoji, style: TextStyle(fontSize: 34.sp)),
-            ),
-            Positioned(
-              left: 0,
-              right: 8.w,
-              bottom: 0,
-              child: Text(
-                preset.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                  shadows: const [
-                    Shadow(color: Color(0x33000000), blurRadius: 8),
-                  ],
+            borderRadius: BorderRadius.circular(26.r),
+            border: selected
+                ? AppTheme.stickerBorder()
+                : Border.all(color: Colors.white, width: 2),
+            boxShadow: _choiceShadow(selected),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Text(preset.emoji, style: TextStyle(fontSize: 34.sp)),
+              ),
+              Positioned(
+                left: 0,
+                right: 8.w,
+                bottom: 0,
+                child: Text(
+                  preset.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: Colors.white,
+                    shadows: const [
+                      Shadow(color: Color(0x33000000), blurRadius: 8),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            if (selected)
-              const Positioned(
-                left: 0,
-                top: 0,
-                child: Icon(Icons.check_circle_rounded, color: Colors.white),
-              ),
-          ],
+              if (selected)
+                const Positioned(
+                  left: 0,
+                  top: 0,
+                  child: Icon(Icons.check_circle_rounded, color: Colors.white),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -812,41 +787,42 @@ class _ThemeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFFFE18D) : Colors.white,
-          borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(
-            color: selected ? const Color(0xFFFFD45A) : const Color(0xFFF0EBF8),
-            width: 1.4,
+    return BouncyTap(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+          decoration: BoxDecoration(
+            color: selected ? AppTheme.lemon : Colors.white,
+            borderRadius: BorderRadius.circular(20.r),
+            border: _choiceBorder(selected),
+            boxShadow: _choiceShadow(selected, offset: 3),
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0D0F172A),
-              blurRadius: 10,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(emoji, style: TextStyle(fontSize: 14.sp)),
-            SizedBox(width: 6.w),
-            Text(
-              label,
-              style: TextStyle(
-                color: selected ? AppTheme.ink : AppTheme.olive,
-                fontWeight: FontWeight.w900,
-                fontSize: 13.sp,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: TextStyle(fontSize: 14.sp)),
+              SizedBox(width: 6.w),
+              Text(
+                label,
+                style: TextStyle(
+                  color: AppTheme.navy,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  fontSize: 13.sp,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+/// Selected choices get the navy sticker outline; others a light stroke.
+Border _choiceBorder(bool selected) => selected
+    ? AppTheme.stickerBorder()
+    : Border.all(color: AppTheme.fieldStroke, width: 2);
+
+List<BoxShadow>? _choiceShadow(bool selected, {double offset = 4}) =>
+    selected ? AppTheme.stickerShadow(offset: offset) : null;

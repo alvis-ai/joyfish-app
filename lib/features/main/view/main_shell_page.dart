@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../common/themes/app_theme.dart';
+import '../../../common/widgets/candy_widgets.dart';
 import '../../../common/widgets/joyfish_scaffold.dart';
 import '../../../core/router/app_router.dart';
 import '../../children/providers/child_providers.dart';
@@ -110,6 +111,7 @@ class _FloatingDock extends StatelessWidget {
           tooltip: '个人设置',
           icon: Icons.child_care_rounded,
           onTap: onOpenProfile,
+          iconColor: AppTheme.candyPink,
         ),
         const Spacer(),
         _DockCluster(
@@ -119,18 +121,22 @@ class _FloatingDock extends StatelessWidget {
               icon: Icons.auto_stories_rounded,
               onTap: onOpenLibrary,
               compact: true,
+              iconColor: AppTheme.skyBlue,
             ),
             _DockButton(
               tooltip: '会员中心',
               icon: Icons.workspace_premium_rounded,
               onTap: onOpenMembership,
               compact: true,
+              iconColor: const Color(0xFFF2A900),
             ),
             _DockButton(
               tooltip: '创作故事',
               icon: Icons.auto_awesome_rounded,
               onTap: onCreateStory,
               compact: true,
+              iconColor: Colors.white,
+              color: AppTheme.grape,
             ),
           ],
         ),
@@ -146,23 +152,17 @@ class _DockCluster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24.r),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 6.r, vertical: 6.r),
-          decoration: BoxDecoration(
-            color: AppTheme.olive.withValues(alpha: 0.16),
-            borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.28),
-              width: 1,
-            ),
-          ),
-          child: Row(children: children),
+    return Container(
+      padding: EdgeInsets.fromLTRB(6.r, 6.r, 6.r, 9.r),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(99.r),
+        border: AppTheme.stickerBorder(
+          color: AppTheme.navy.withValues(alpha: 0.12),
+          width: 2,
         ),
       ),
+      child: Row(children: children),
     );
   }
 }
@@ -173,47 +173,28 @@ class _DockButton extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.compact = false,
+    this.iconColor = AppTheme.navy,
+    this.color = Colors.white,
   });
 
   final String tooltip;
   final IconData icon;
   final VoidCallback onTap;
   final bool compact;
+  final Color iconColor;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final size = compact ? 42.r : 46.r;
-    return Tooltip(
-      message: tooltip,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: compact ? 2.r : 0),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(99.r),
-            child: Ink(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF8EC).withValues(alpha: 0.86),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.55),
-                  width: 1,
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x1F5D3F1D),
-                    blurRadius: 18,
-                    offset: Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: AppTheme.olive, size: 22.sp),
-            ),
-          ),
-        ),
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: compact ? 3.r : 0),
+      child: CandyIconButton(
+        icon: icon,
+        tooltip: tooltip,
+        onTap: onTap,
+        iconColor: iconColor,
+        color: color,
+        size: compact ? 44.r : 50.r,
       ),
     );
   }
@@ -267,19 +248,10 @@ class _WarmPanelOverlay extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(14.w, 74.h, 14.w, 12.h),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF6E6).withValues(alpha: 0.88),
+                  color: AppTheme.cream,
                   borderRadius: BorderRadius.circular(34.r),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.48),
-                    width: 1.2,
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x245D3F1D),
-                      blurRadius: 30,
-                      offset: Offset(0, 18),
-                    ),
-                  ],
+                  border: AppTheme.stickerBorder(),
+                  boxShadow: AppTheme.stickerShadow(offset: 6),
                 ),
                 child: Column(
                   children: [
@@ -301,7 +273,10 @@ class _WarmPanelOverlay extends StatelessWidget {
                                 style: Theme.of(context)
                                     .textTheme
                                     .headlineMedium
-                                    ?.copyWith(color: AppTheme.olive),
+                                    ?.copyWith(
+                                      color: AppTheme.navy,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                               ),
                             ),
                           ),
